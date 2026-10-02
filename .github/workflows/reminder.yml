@@ -1,0 +1,49 @@
+name: Günlük hatırlatma
+
+on:
+  schedule:
+    - cron: '3 * * * *'   # her saat başı (birkaç dakika gecikebilir)
+  workflow_dispatch:
+    inputs:
+      force:
+        description: 'Şimdi test bildirimi gönder'
+        type: boolean
+        default: true
+
+permissions:
+  contents: write
+
+jobs:
+  send:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+
+      - uses: actions/setup-node@v4
+        with:
+          node-version: 20
+
+      - name: Firebase kütüphanesini kur
+        run: npm install --no-save --no-audit --no-fund firebase-admin@14
+
+      - name: Bildirimleri gönder
+        run: node scripts/send-reminders.mjs
+        env:
+          FIREBASE_SERVICE_ACCOUNT: ${{ secrets.FIREBASE_SERVICE_ACCOUNT }}
+          FORCE: ${{ github.event_name == 'workflow_dispatch' && inputs.force }}
+
+      # GitHub, 60 gün değişiklik olmayan depolarda zamanlanmış görevleri durdurur.
+      # Bu adım 50 günde bir küçük bir kayıt yaparak görevi canlı tutar.
+      - name: Görevi canlı tut
+        if: github.event_name == 'schedule'
+        run: |
+          last=$(git log -1 --format=%ct)
+          now=$(date +%s)
+          if [ $((now - last)) -gt 4320000 ]; then
+            date -u > .github/keepalive.txt
+            git config user.name "flashcard-bot"
+            git config user.email "flashcard-bot@users.noreply.github.com"
+            git add .github/keepalive.txt
+            git commit -m "keepalive"
+            git push
+          fi
