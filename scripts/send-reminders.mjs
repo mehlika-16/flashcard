@@ -1,7 +1,9 @@
 // FlashCard günlük hatırlatma gönderici
 // GitHub Actions her saat başı çalıştırır. Her cihazın kendi saat diliminde
 // seçtiği saat geldiyse ve tekrar edilecek kelime varsa bildirim gönderir.
-import admin from 'firebase-admin';
+import { initializeApp, cert } from 'firebase-admin/app';
+import { getFirestore } from 'firebase-admin/firestore';
+import { getMessaging } from 'firebase-admin/messaging';
 
 const raw = process.env.FIREBASE_SERVICE_ACCOUNT;
 if (!raw) {
@@ -9,9 +11,9 @@ if (!raw) {
   process.exit(1);
 }
 
-admin.initializeApp({ credential: admin.credential.cert(JSON.parse(raw)) });
-const db = admin.firestore();
-const fcm = admin.messaging();
+initializeApp({ credential: cert(JSON.parse(raw)) });
+const db = getFirestore();
+const fcm = getMessaging();
 
 const FORCE = process.env.FORCE === 'true';
 const APP_URL = 'https://mehlika-16.github.io/flashcard/';
