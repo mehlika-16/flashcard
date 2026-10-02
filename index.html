@@ -1,0 +1,3071 @@
+<!DOCTYPE html>
+<html lang="tr" data-theme="dark">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no" />
+  
+  <!-- Apple iOS PWA Meta Etiketleri -->
+  <meta name="apple-mobile-web-app-capable" content="yes" />
+  <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent" />
+  <meta name="apple-mobile-web-app-title" content="FlashCard" />
+  <link rel="apple-touch-icon" href="icon-180.png" />
+  
+  <!-- Android & Standart PWA -->
+  <meta name="theme-color" content="#10b981" />
+  <link rel="manifest" href="manifest.json" />
+  <link rel="icon" type="image/svg+xml" href="icon.svg" />
+
+  <title>Kelime Kartları & Aralıklı Tekrar (1-3-7-30-90 Gün)</title>
+
+  <style>
+    :root {
+      --bg: #0f172a;
+      --surface: #1e293b;
+      --surface-elevated: #334155;
+      --text: #f8fafc;
+      --text-muted: #94a3b8;
+      --text-faint: #64748b;
+      --border: #334155;
+      --primary: #10b981;
+      --primary-hover: #059669;
+      --primary-faint: rgba(16, 185, 129, 0.15);
+      --accent: #6366f1;
+      --accent-faint: rgba(99, 102, 241, 0.15);
+      --danger: #ef4444;
+      --danger-faint: rgba(239, 68, 68, 0.15);
+      --warning: #f59e0b;
+      --warning-faint: rgba(245, 158, 11, 0.15);
+      --shadow: 0 10px 25px -5px rgba(0, 0, 0, 0.3), 0 8px 10px -6px rgba(0, 0, 0, 0.2);
+      --card-front-bg: #1e293b;
+      --card-back-bg: #064e3b;
+      --card-back-border: #047857;
+      --card-back-text: #ecfdf5;
+      --radius-lg: 20px;
+      --radius-md: 12px;
+      --radius-sm: 8px;
+    }
+
+    [data-theme="light"] {
+      --bg: #f8fafc;
+      --surface: #ffffff;
+      --surface-elevated: #f1f5f9;
+      --text: #0f172a;
+      --text-muted: #64748b;
+      --text-faint: #94a3b8;
+      --border: #e2e8f0;
+      --primary: #059669;
+      --primary-hover: #047857;
+      --primary-faint: rgba(5, 150, 105, 0.12);
+      --accent: #4f46e5;
+      --accent-faint: rgba(79, 70, 229, 0.12);
+      --danger: #dc2626;
+      --danger-faint: rgba(220, 38, 38, 0.12);
+      --warning: #d97706;
+      --warning-faint: rgba(217, 119, 6, 0.12);
+      --shadow: 0 10px 25px -5px rgba(0, 0, 0, 0.08), 0 8px 10px -6px rgba(0, 0, 0, 0.04);
+      --card-front-bg: #ffffff;
+      --card-back-bg: #f0fdf4;
+      --card-back-border: #bbf7d0;
+      --card-back-text: #065f46;
+    }
+
+    * {
+      box-sizing: border-box;
+      margin: 0;
+      padding: 0;
+      -webkit-tap-highlight-color: transparent;
+      font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, Helvetica, Arial, sans-serif;
+    }
+
+    body {
+      background-color: var(--bg);
+      color: var(--text);
+      display: flex;
+      justify-content: center;
+      min-height: 100vh;
+      padding: 12px 10px 60px 10px;
+      transition: background-color 0.3s, color 0.3s;
+    }
+
+    .container {
+      width: 100%;
+      max-width: 640px;
+      display: flex;
+      flex-direction: column;
+      gap: 14px;
+    }
+
+    /* Üst Başlık & Kontroller */
+    .app-header {
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      padding: 4px 2px;
+    }
+
+    .brand-title {
+      display: flex;
+      align-items: center;
+      gap: 10px;
+    }
+
+    .brand-icon {
+      width: 38px;
+      height: 38px;
+      border-radius: 10px;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      background: var(--primary-faint);
+      color: var(--primary);
+    }
+
+    .brand-text h1 {
+      font-size: 1.25rem;
+      font-weight: 700;
+      letter-spacing: -0.02em;
+    }
+
+    .brand-text p {
+      font-size: 0.8rem;
+      color: var(--text-muted);
+    }
+
+    .header-actions {
+      display: flex;
+      align-items: center;
+      gap: 8px;
+    }
+
+    .btn-icon {
+      width: 40px;
+      height: 40px;
+      border-radius: var(--radius-sm);
+      border: 1px solid var(--border);
+      background: var(--surface);
+      color: var(--text);
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      cursor: pointer;
+      transition: background 0.2s;
+    }
+
+    .btn-icon:active {
+      transform: scale(0.95);
+    }
+
+    .btn-primary {
+      background: var(--primary);
+      color: #ffffff;
+      border: none;
+      padding: 10px 14px;
+      border-radius: var(--radius-sm);
+      font-size: 0.88rem;
+      font-weight: 700;
+      cursor: pointer;
+      display: inline-flex;
+      align-items: center;
+      justify-content: center;
+      gap: 6px;
+      transition: background 0.2s;
+    }
+
+    .btn-primary:active {
+      transform: scale(0.97);
+    }
+
+    .btn-outline {
+      background: transparent;
+      border: 1px solid var(--border);
+      color: var(--text);
+      padding: 10px 14px;
+      border-radius: var(--radius-sm);
+      font-size: 0.85rem;
+      font-weight: 600;
+      cursor: pointer;
+      display: inline-flex;
+      align-items: center;
+      justify-content: center;
+      gap: 6px;
+      transition: background 0.2s;
+    }
+
+    /* Ana Sekmeler */
+    .main-nav-tabs {
+      display: grid;
+      grid-template-columns: 1.2fr 1.2fr 1fr;
+      background: var(--surface);
+      border: 1px solid var(--border);
+      border-radius: var(--radius-md);
+      padding: 4px;
+      gap: 4px;
+      box-shadow: var(--shadow);
+    }
+
+    .nav-tab-btn {
+      border: none;
+      background: transparent;
+      color: var(--text-muted);
+      padding: 10px 6px;
+      font-size: 0.85rem;
+      font-weight: 700;
+      border-radius: var(--radius-sm);
+      cursor: pointer;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      gap: 6px;
+      transition: all 0.2s;
+    }
+
+    .nav-tab-btn.active {
+      background: var(--primary);
+      color: #ffffff;
+      box-shadow: 0 4px 12px rgba(16, 185, 129, 0.3);
+    }
+
+    /* İstatistik Çubuğu */
+    .stats-bar {
+      display: grid;
+      grid-template-columns: repeat(3, 1fr);
+      gap: 8px;
+    }
+
+    .stat-card {
+      background: var(--surface);
+      border: 1px solid var(--border);
+      border-radius: var(--radius-md);
+      padding: 10px 6px;
+      text-align: center;
+      box-shadow: var(--shadow);
+    }
+
+    .stat-num {
+      font-size: 1.3rem;
+      font-weight: 800;
+      line-height: 1.2;
+    }
+
+    .stat-num.due { color: var(--warning); }
+    .stat-num.total { color: var(--accent); }
+    .stat-num.mastered { color: var(--primary); }
+
+    .stat-label {
+      font-size: 0.72rem;
+      color: var(--text-muted);
+      font-weight: 600;
+      margin-top: 2px;
+    }
+
+    /* Panel Yapısı */
+    .panel {
+      background: var(--surface);
+      border: 1px solid var(--border);
+      border-radius: var(--radius-lg);
+      padding: 16px;
+      box-shadow: var(--shadow);
+    }
+
+    /* ÇALIŞMA ALANI */
+    .study-header {
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      margin-bottom: 12px;
+    }
+
+    .study-mode-toggle {
+      display: flex;
+      background: var(--surface-elevated);
+      border-radius: var(--radius-sm);
+      padding: 3px;
+      gap: 4px;
+    }
+
+    .study-mode-btn {
+      border: none;
+      background: transparent;
+      color: var(--text-muted);
+      padding: 6px 12px;
+      font-size: 0.78rem;
+      font-weight: 600;
+      border-radius: 6px;
+      cursor: pointer;
+      transition: all 0.2s;
+    }
+
+    .study-mode-btn.active {
+      background: var(--surface);
+      color: var(--text);
+      box-shadow: 0 2px 5px rgba(0,0,0,0.1);
+    }
+
+    .study-counter {
+      font-size: 0.85rem;
+      font-weight: 700;
+      color: var(--text-muted);
+    }
+
+    .progress-track {
+      width: 100%;
+      height: 6px;
+      background: var(--surface-elevated);
+      border-radius: 3px;
+      overflow: hidden;
+      margin-bottom: 14px;
+    }
+
+    .progress-fill {
+      height: 100%;
+      background: linear-gradient(90deg, var(--primary), var(--accent));
+      width: 0%;
+      transition: width 0.3s ease;
+    }
+
+    /* 3D Flashcard */
+    .card-scene {
+      perspective: 1000px;
+      width: 100%;
+      min-height: 260px;
+      cursor: pointer;
+      user-select: none;
+    }
+
+    .card-inner {
+      position: relative;
+      display: grid; /* İki yüz üst üste biner, kart en uzun içeriğe göre büyür */
+      width: 100%;
+      min-height: 260px;
+      text-align: center;
+      transition: transform 0.6s cubic-bezier(0.4, 0, 0.2, 1);
+      transform-style: preserve-3d;
+    }
+
+    .card-inner.is-flipped {
+      transform: rotateY(180deg);
+    }
+
+    .card-face {
+      grid-area: 1 / 1;
+      position: relative;
+      width: 100%;
+      min-height: 260px;
+      backface-visibility: hidden;
+      -webkit-backface-visibility: hidden;
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      justify-content: space-between;
+      padding: 20px 18px;
+      border-radius: var(--radius-lg);
+      border: 1px solid var(--border);
+      box-shadow: var(--shadow);
+    }
+
+    .card-front {
+      background: var(--card-front-bg);
+      color: var(--text);
+    }
+
+    .card-back {
+      background: var(--card-back-bg);
+      border-color: var(--card-back-border);
+      color: var(--card-back-text);
+      transform: rotateY(180deg);
+    }
+
+    .card-badges {
+      display: flex;
+      gap: 6px;
+      align-items: center;
+      flex-wrap: wrap;
+      justify-content: center;
+    }
+
+    .badge {
+      font-size: 0.72rem;
+      padding: 3px 8px;
+      border-radius: 6px;
+      font-weight: 700;
+    }
+
+    .badge-stage {
+      background: var(--accent-faint);
+      color: #818cf8;
+      border: 1px solid rgba(99, 102, 241, 0.4);
+    }
+
+    .badge-mastered {
+      background: var(--primary-faint);
+      color: var(--primary);
+      border: 1px solid rgba(16, 185, 129, 0.4);
+    }
+
+    .badge-type { background: var(--surface-elevated); color: var(--text-muted); }
+    .badge-level { background: var(--surface-elevated); color: var(--text-muted); }
+
+    /* SRS Aşama İlerleme Zaman Çizelgesi (1, 3, 7, 30, 90 Gün) */
+    .srs-timeline {
+      display: flex;
+      align-items: center;
+      gap: 5px;
+      margin: 4px 0 8px 0;
+      justify-content: center;
+    }
+
+    .srs-step-dot {
+      display: inline-flex;
+      align-items: center;
+      justify-content: center;
+      font-size: 0.68rem;
+      font-weight: 700;
+      padding: 2px 7px;
+      border-radius: 12px;
+      background: var(--surface-elevated);
+      color: var(--text-muted);
+      border: 1px solid var(--border);
+      transition: all 0.2s;
+    }
+
+    .srs-step-dot.active {
+      background: var(--warning);
+      color: #0f172a;
+      border-color: var(--warning);
+      box-shadow: 0 0 8px rgba(245, 158, 11, 0.4);
+    }
+
+    .srs-step-dot.completed {
+      background: var(--primary);
+      color: #ffffff;
+      border-color: var(--primary);
+    }
+
+    .card-center-content {
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      justify-content: center;
+      gap: 10px;
+      margin: 10px 0;
+      width: 100%;
+    }
+
+    .word-row {
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      gap: 10px;
+    }
+
+    .card-word-title.is-long { font-size: 1.5rem; }
+    .card-word-title.is-very-long { font-size: 1.2rem; line-height: 1.3; }
+    .card-def-title.is-long { font-size: 1.15rem; }
+
+    .card-word-title {
+      overflow-wrap: anywhere;
+      font-size: 2.1rem;
+      font-weight: 800;
+      line-height: 1.15;
+    }
+
+    .btn-audio {
+      background: var(--surface-elevated);
+      border: 1px solid var(--border);
+      color: var(--text);
+      width: 38px;
+      height: 38px;
+      border-radius: 50%;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      cursor: pointer;
+      transition: all 0.2s;
+    }
+
+    .btn-audio-sm {
+      width: 30px;
+      height: 30px;
+      flex-shrink: 0;
+      background: rgba(255, 255, 255, 0.15);
+      border-color: rgba(255, 255, 255, 0.25);
+      color: inherit;
+    }
+
+    .btn-audio:active {
+      transform: scale(0.9);
+      background: var(--primary);
+      color: #fff;
+    }
+
+    .btn-hint {
+      background: transparent;
+      border: 1px dashed var(--text-muted);
+      color: var(--text-muted);
+      padding: 4px 10px;
+      font-size: 0.75rem;
+      border-radius: 6px;
+      cursor: pointer;
+    }
+
+    .hint-box {
+      font-size: 0.85rem;
+      color: var(--warning);
+      background: var(--warning-faint);
+      padding: 6px 12px;
+      border-radius: 8px;
+      max-width: 90%;
+    }
+
+    .card-footer-info {
+      font-size: 0.8rem;
+      color: var(--text-muted);
+      display: flex;
+      align-items: center;
+      gap: 6px;
+    }
+
+    .card-def-title {
+      overflow-wrap: anywhere;
+      font-size: 1.45rem;
+      font-weight: 700;
+      line-height: 1.25;
+    }
+
+    .card-example-box {
+      background: rgba(0, 0, 0, 0.1);
+      border-left: 3px solid var(--primary);
+      padding: 8px 12px;
+      border-radius: 0 8px 8px 0;
+      text-align: left;
+      width: 100%;
+    }
+
+    .card-example-en {
+      font-size: 0.92rem;
+      font-style: italic;
+      margin-bottom: 3px;
+    }
+
+    .card-example-tr {
+      font-size: 0.82rem;
+      opacity: 0.85;
+    }
+
+    .card-tags {
+      display: flex;
+      gap: 5px;
+      flex-wrap: wrap;
+      justify-content: center;
+    }
+
+    .tag-pill {
+      font-size: 0.7rem;
+      background: rgba(255, 255, 255, 0.18);
+      padding: 2px 8px;
+      border-radius: 12px;
+      font-weight: 600;
+    }
+
+    /* Değerlendirme & İlerleme Butonları (Öğrendim / Hatırlamadım / Atla) */
+    .actions-grid {
+      display: grid;
+      grid-template-columns: 1fr 1.35fr 0.65fr;
+      gap: 8px;
+      margin-top: 14px;
+    }
+
+    .btn-grade {
+      padding: 13px 8px;
+      border: none;
+      border-radius: var(--radius-md);
+      font-size: 0.9rem;
+      font-weight: 700;
+      cursor: pointer;
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      justify-content: center;
+      gap: 4px;
+      transition: transform 0.1s, box-shadow 0.2s;
+    }
+
+    .btn-grade:active {
+      transform: scale(0.96);
+    }
+
+    .btn-grade .shortcut-key {
+      font-size: 0.68rem;
+      opacity: 0.85;
+      font-weight: 600;
+    }
+
+    .btn-again {
+      background: var(--danger-faint);
+      color: var(--danger);
+      border: 1px solid var(--danger);
+    }
+
+    .btn-learned {
+      background: var(--primary);
+      color: #ffffff;
+      border: 1px solid var(--primary);
+      box-shadow: 0 4px 14px rgba(16, 185, 129, 0.35);
+    }
+
+    .btn-skip {
+      background: var(--surface-elevated);
+      color: var(--text-muted);
+      border: 1px solid var(--border);
+    }
+
+    /* YENİ KART EKLEME KARTI */
+    .add-card-view {
+      display: flex;
+      flex-direction: column;
+      gap: 12px;
+    }
+
+    .form-title-row {
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      border-bottom: 1px solid var(--border);
+      padding-bottom: 10px;
+    }
+
+    .form-title-row h3 {
+      font-size: 1.15rem;
+      font-weight: 700;
+      color: var(--text);
+    }
+
+    .form-group {
+      display: flex;
+      flex-direction: column;
+      gap: 6px;
+    }
+
+    .form-row {
+      display: grid;
+      grid-template-columns: 1fr 1fr;
+      gap: 10px;
+    }
+
+    .form-group label {
+      font-size: 0.8rem;
+      font-weight: 600;
+      color: var(--text-muted);
+    }
+
+    .form-group input, .form-group textarea, .form-group select {
+      width: 100%;
+      padding: 12px 14px;
+      border-radius: var(--radius-sm);
+      border: 1px solid var(--border);
+      background: var(--surface-elevated);
+      color: var(--text);
+      font-size: 16px;
+      outline: none;
+      transition: border-color 0.2s;
+    }
+
+    .form-group input:focus, .form-group textarea:focus, .form-group select:focus {
+      border-color: var(--primary);
+    }
+
+    .form-actions-row {
+      display: flex;
+      gap: 10px;
+      margin-top: 6px;
+    }
+
+    .btn-save-card {
+      flex: 2;
+      background: var(--primary);
+      color: #ffffff;
+      border: none;
+      padding: 14px;
+      border-radius: var(--radius-md);
+      font-size: 1rem;
+      font-weight: 700;
+      cursor: pointer;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      gap: 8px;
+      box-shadow: 0 4px 15px rgba(16, 185, 129, 0.3);
+    }
+
+    .btn-save-card:active {
+      transform: scale(0.98);
+    }
+
+    .btn-cancel-card {
+      flex: 1;
+      background: var(--surface-elevated);
+      color: var(--text-muted);
+      border: 1px solid var(--border);
+      padding: 14px;
+      border-radius: var(--radius-md);
+      font-size: 0.9rem;
+      font-weight: 600;
+      cursor: pointer;
+    }
+
+    /* KARTLAR LİSTESİ */
+    .filter-controls {
+      display: flex;
+      flex-direction: column;
+      gap: 10px;
+      margin-bottom: 12px;
+    }
+
+    .search-box {
+      position: relative;
+      width: 100%;
+    }
+
+    .search-box input {
+      width: 100%;
+      padding: 10px 12px 10px 38px;
+      background: var(--surface-elevated);
+      border: 1px solid var(--border);
+      border-radius: var(--radius-sm);
+      color: var(--text);
+      font-size: 16px;
+      outline: none;
+    }
+
+    .search-icon {
+      position: absolute;
+      left: 12px;
+      top: 50%;
+      transform: translateY(-50%);
+      color: var(--text-muted);
+    }
+
+    .filter-dropdowns {
+      display: grid;
+      grid-template-columns: 1.1fr 1fr 1.1fr;
+      gap: 8px;
+    }
+
+    select {
+      background: var(--surface-elevated);
+      border: 1px solid var(--border);
+      border-radius: var(--radius-sm);
+      color: var(--text);
+      padding: 8px 10px;
+      font-size: 14px;
+      outline: none;
+    }
+
+    .card-list-items {
+      display: flex;
+      flex-direction: column;
+      gap: 8px;
+      max-height: 480px;
+      overflow-y: auto;
+    }
+
+    .card-item {
+      background: var(--surface-elevated);
+      border: 1px solid var(--border);
+      border-radius: var(--radius-md);
+      padding: 12px 14px;
+      transition: all 0.3s;
+    }
+
+    .card-item.is-due {
+      border-left: 4px solid var(--warning);
+    }
+
+    .card-item.is-mastered {
+      border-left: 4px solid var(--primary);
+    }
+
+    .card-item.just-added {
+      border: 2px solid var(--primary);
+      background: var(--primary-faint);
+    }
+
+    .card-item-header {
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      margin-bottom: 4px;
+      flex-wrap: wrap;
+      gap: 6px;
+    }
+
+    .card-item-word {
+      font-size: 1.05rem;
+      font-weight: 700;
+      color: var(--text);
+    }
+
+    .card-item-def {
+      font-size: 0.88rem;
+      color: var(--text-muted);
+      margin-bottom: 4px;
+    }
+
+    .card-item-ex {
+      font-size: 0.8rem;
+      font-style: italic;
+      color: var(--text-faint);
+      margin-bottom: 6px;
+    }
+
+    .card-item-footer {
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      font-size: 0.75rem;
+      color: var(--text-faint);
+      margin-top: 6px;
+      flex-wrap: wrap;
+      gap: 4px;
+    }
+
+    .card-item-actions {
+      display: flex;
+      gap: 6px;
+    }
+
+    .btn-icon-action {
+      background: transparent;
+      border: none;
+      color: var(--text-muted);
+      cursor: pointer;
+      padding: 4px;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+    }
+
+    .btn-icon-action.delete { color: var(--danger); }
+
+    /* Giriş Ekranı */
+    .auth-overlay {
+      position: fixed;
+      inset: 0;
+      z-index: 9000;
+      background: var(--bg);
+      display: flex;
+      align-items: flex-start;
+      justify-content: center;
+      padding: 48px 16px 24px;
+      overflow-y: auto;
+    }
+
+    .auth-box {
+      width: 100%;
+      max-width: 400px;
+      display: flex;
+      flex-direction: column;
+      gap: 12px;
+    }
+
+    .auth-box h2 { font-size: 1.4rem; text-align: center; }
+    .auth-box p.auth-sub { color: var(--text-muted); font-size: 0.9rem; text-align: center; line-height: 1.45; }
+    .auth-box .btn-save-card { width: 100%; flex: none; }
+    .auth-links { display: flex; justify-content: space-between; gap: 8px; font-size: 0.85rem; }
+    .auth-links a { color: var(--accent); text-decoration: none; font-weight: 600; cursor: pointer; }
+    .auth-error, .auth-info {
+      display: none;
+      padding: 10px 12px;
+      border-radius: var(--radius-sm);
+      font-size: 0.88rem;
+      font-weight: 600;
+    }
+    .auth-error { background: var(--danger-faint); color: var(--danger); }
+    .auth-info { background: var(--primary-faint); color: var(--primary); }
+
+    .sync-pill {
+      font-size: 0.7rem;
+      font-weight: 700;
+      padding: 3px 8px;
+      border-radius: 10px;
+      background: var(--surface-elevated);
+      color: var(--text-muted);
+      border: 1px solid var(--border);
+      white-space: nowrap;
+    }
+    .sync-pill.ok { color: var(--primary); }
+    .sync-pill.pending { color: var(--warning); }
+    .sync-pill.offline { color: var(--danger); }
+
+    /* Fotoğraf */
+    .photo-picker { display: flex; align-items: center; gap: 10px; flex-wrap: wrap; }
+    .photo-preview {
+      width: 84px;
+      height: 84px;
+      object-fit: cover;
+      border-radius: var(--radius-sm);
+      border: 1px solid var(--border);
+      display: none;
+    }
+    .card-photo {
+      max-width: 100%;
+      max-height: 180px;
+      border-radius: var(--radius-md);
+      object-fit: contain;
+      display: none;
+    }
+    .card-photo.front { max-height: 140px; }
+    .loading-state { text-align: center; padding: 40px 10px; color: var(--text-muted); font-weight: 600; }
+
+    @media (max-width: 400px) {
+      .sync-pill { display: none; }
+    }
+
+    /* Toast Bildirimi */
+    .toast {
+      position: fixed;
+      top: 20px;
+      left: 50%;
+      transform: translateX(-50%) translateY(-100px);
+      background: var(--surface-elevated);
+      color: var(--text);
+      border: 1px solid var(--border);
+      padding: 14px 22px;
+      border-radius: var(--radius-md);
+      box-shadow: 0 10px 30px rgba(0,0,0,0.5);
+      font-size: 0.95rem;
+      font-weight: 700;
+      z-index: 99999;
+      opacity: 0;
+      pointer-events: none;
+      transition: all 0.3s cubic-bezier(0.175, 0.885, 0.32, 1.275);
+      max-width: 90vw;
+      text-align: center;
+    }
+
+    .toast.show {
+      transform: translateX(-50%) translateY(0);
+      opacity: 1;
+      pointer-events: auto;
+    }
+
+    .toast.toast-success {
+      background: #064e3b;
+      border-color: var(--primary);
+      color: #ecfdf5;
+    }
+
+    .toast.toast-warning {
+      background: #78350f;
+      border-color: var(--warning);
+      color: #fef3c7;
+    }
+
+    /* Boş Durum */
+    .empty-state {
+      text-align: center;
+      padding: 24px 10px;
+    }
+
+    .empty-state h2 {
+      font-size: 1.4rem;
+      margin-bottom: 8px;
+    }
+
+    .empty-state p {
+      color: var(--text-muted);
+      font-size: 0.9rem;
+      margin-bottom: 16px;
+    }
+
+    .shortcuts-bar {
+      display: none;
+      justify-content: center;
+      gap: 16px;
+      font-size: 0.75rem;
+      color: var(--text-faint);
+      margin-top: 10px;
+    }
+
+    @media (min-width: 768px) {
+      .shortcuts-bar { display: flex; }
+    }
+
+    .kbd {
+      background: var(--surface-elevated);
+      border: 1px solid var(--border);
+      border-radius: 4px;
+      padding: 1px 5px;
+      font-weight: 700;
+      color: var(--text-muted);
+    }
+
+    /* Veri Yönetimi */
+    .data-grid {
+      display: grid;
+      grid-template-columns: 1fr 1fr;
+      gap: 8px;
+    }
+
+    /* Android Yükleme Banner'ı */
+    .install-banner {
+      background: linear-gradient(135deg, rgba(16, 185, 129, 0.15), rgba(99, 102, 241, 0.15));
+      border: 1px solid var(--primary);
+      border-radius: var(--radius-md);
+      padding: 10px 14px;
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      gap: 10px;
+      margin-bottom: 8px;
+    }
+
+    .install-banner-content {
+      display: flex;
+      align-items: center;
+      gap: 10px;
+    }
+
+    .install-banner-icon {
+      width: 36px;
+      height: 36px;
+      border-radius: 8px;
+      background: var(--primary);
+      color: #fff;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      flex-shrink: 0;
+    }
+
+    .install-banner-text strong {
+      font-size: 0.92rem;
+      display: block;
+      color: var(--text);
+    }
+
+    .install-banner-text span {
+      font-size: 0.76rem;
+      color: var(--text-muted);
+    }
+
+    @media (max-width: 480px) {
+      .actions-grid {
+        grid-template-columns: 1fr 1.25fr;
+      }
+      .btn-skip {
+        grid-column: span 2;
+        padding: 8px;
+      }
+      .card-word-title {
+        font-size: 1.75rem;
+      }
+    }
+  </style>
+</head>
+<body>
+
+<div class="container">
+  <!-- Üst Başlık & Hızlı Eylemler -->
+  <header class="app-header">
+    <div class="brand-title">
+      <div class="brand-icon">
+        <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round">
+          <path d="M2 3h6a4 4 0 0 1 4 4v14a3 3 0 0 0-3-3H2z"></path>
+          <path d="M22 3h-6a4 4 0 0 0-4 4v14a3 3 0 0 1 3-3h7z"></path>
+        </svg>
+      </div>
+      <div class="brand-text">
+        <h1>FlashCard</h1>
+        <p>Aralıklı Tekrar (1-3-7-30-90 Gün)</p>
+      </div>
+    </div>
+    <div class="header-actions">
+      <span class="sync-pill" id="sync-pill" title="Senkronizasyon durumu">…</span>
+      <button class="btn-icon" onclick="openAccountMenu()" title="Hesap">
+        <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M20 21v-2a4 4 0 0 0-4-4H8a4 4 0 0 0-4 4v2"/><circle cx="12" cy="7" r="4"/></svg>
+      </button>
+      <button class="btn-icon" id="theme-toggle-btn" onclick="toggleTheme()" title="Tema Değiştir">
+        <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="12" cy="12" r="5"/><path d="M12 1v2M12 21v2M4.22 4.22l1.42 1.42M18.36 18.36l1.42 1.42M1 12h2M21 12h2M4.22 19.78l1.42-1.42M18.36 5.64l1.42-1.42"/></svg>
+      </button>
+      <button class="btn-primary" onclick="openAddCardTab()" title="Yeni Kelime Ekle">
+        <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><line x1="12" y1="5" x2="12" y2="19"></line><line x1="5" y1="12" x2="19" y2="12"></line></svg>
+        <span>+ Yeni</span>
+      </button>
+    </div>
+  </header>
+
+  <!-- Android PWA Otomatik Yükleme Banner'ı -->
+  <div id="pwa-install-banner" class="install-banner" style="display: none;">
+    <div class="install-banner-content">
+      <div class="install-banner-icon">
+        <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"/><polyline points="7 10 12 15 17 10"/><line x1="12" y1="15" x2="12" y2="3"/></svg>
+      </div>
+      <div class="install-banner-text">
+        <strong>FlashCard Uygulaması</strong>
+        <span>Ana ekrana tek tıkla yükleyin</span>
+      </div>
+    </div>
+    <button class="btn-primary" onclick="installPWA()" style="padding: 8px 16px; font-size: 0.85rem;">
+      Yükle
+    </button>
+  </div>
+
+  <!-- Ana Sekmeler -->
+  <nav class="main-nav-tabs">
+    <button class="nav-tab-btn active" id="tab-btn-study" onclick="switchMainTab('study')">
+      <span>📚 Çalış</span>
+    </button>
+    <button class="nav-tab-btn" id="tab-btn-add" onclick="switchMainTab('add')">
+      <span>➕ Yeni Ekle</span>
+    </button>
+    <button class="nav-tab-btn" id="tab-btn-list" onclick="switchMainTab('list')">
+      <span>📋 Kartlar (<span id="nav-count">0</span>)</span>
+    </button>
+  </nav>
+
+  <!-- İstatistik Özeti -->
+  <div class="stats-bar">
+    <div class="stat-card">
+      <div class="stat-num due" id="stat-due-count">0</div>
+      <div class="stat-label">Tekrar Vakti (Bugün)</div>
+    </div>
+    <div class="stat-card">
+      <div class="stat-num total" id="stat-total-count">0</div>
+      <div class="stat-label">Toplam Kelime</div>
+    </div>
+    <div class="stat-card">
+      <div class="stat-num mastered" id="stat-mastered-count">0</div>
+      <div class="stat-label">Öğrenildi (90 Gün Tamam)</div>
+    </div>
+  </div>
+
+  <!-- 1. SEKME: ÇALIŞMA ALANI (FLASHCARD) -->
+  <section class="panel" id="view-study">
+    <div class="study-header">
+      <div class="study-mode-toggle">
+        <button class="study-mode-btn active" id="btn-mode-due" onclick="startStudySession('due')">Tekrarlar</button>
+        <button class="study-mode-btn" id="btn-mode-all" onclick="startStudySession('all')">Tüm Kartlar</button>
+      </div>
+      <div class="study-counter" id="study-counter-text">0 / 0</div>
+    </div>
+
+    <div class="progress-track">
+      <div class="progress-fill" id="study-progress-bar"></div>
+    </div>
+
+    <div class="loading-state" id="study-loading">☁️ Kartların yükleniyor...</div>
+
+    <!-- Aktif Kart Görünümü -->
+    <div id="study-active-view" style="display: none;">
+      <div class="card-scene" onclick="flipStudyCard()">
+        <div class="card-inner" id="flashcard-inner">
+          
+          <!-- ÖN YÜZ -->
+          <div class="card-face card-front">
+            <div class="card-badges">
+              <span class="badge badge-stage" id="card-stage-badge">⏱️ 1. Gün Kontrolü (1/5)</span>
+              <span class="badge badge-type" id="card-type-badge">Kelime</span>
+              <span class="badge badge-level" id="card-level-badge">B2</span>
+            </div>
+
+            <div class="card-center-content">
+              <div class="word-row">
+                <h2 class="card-word-title" id="card-word">Kelime</h2>
+                <button class="btn-audio" id="study-speak-btn" onclick="speakCurrentWord(event)" title="Telaffuz (S)">
+                  <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><polygon points="11 5 6 9 2 9 2 15 6 15 11 19 11 5"></polygon><path d="M19.07 4.93a10 10 0 0 1 0 14.14M15.54 8.46a5 5 0 0 1 0 7.07"></path></svg>
+                </button>
+              </div>
+
+              <!-- 5 Adımlı SRS İlerleme Çizelgesi -->
+              <div class="srs-timeline" id="card-srs-timeline"></div>
+
+              <div style="display:flex; gap:6px; flex-wrap:wrap; justify-content:center;">
+                <button class="btn-hint" id="card-hint-btn" onclick="toggleHint(event)">💡 İpucu Göster</button>
+                <button class="btn-hint" id="card-photo-btn" onclick="showFrontPhoto(event)" style="display:none;">🖼️ Resmi Göster</button>
+              </div>
+              <img class="card-photo front" id="card-photo-front" alt="" />
+              <div class="hint-box" id="card-hint-text" style="display: none;"></div>
+            </div>
+
+            <div class="card-footer-info">
+              <span>Çevirmek için tıkla</span>
+              <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M21.5 2v6h-6M21.34 15.57a10 10 0 1 1-.57-8.38l5.67-5.67"/></svg>
+            </div>
+          </div>
+
+          <!-- ARKA YÜZ -->
+          <div class="card-face card-back">
+            <div class="card-badges">
+              <span class="badge" style="background: rgba(255,255,255,0.2);">Anlam & Detay</span>
+            </div>
+
+            <div class="card-center-content">
+              <div class="word-row">
+                <h3 class="card-def-title" id="card-def">Definition</h3>
+                <button class="btn-audio btn-audio-sm" onclick="speakCurrentField('definition', event)" title="Tanımı dinle"><svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><polygon points="11 5 6 9 2 9 2 15 6 15 11 19 11 5"></polygon><path d="M15.54 8.46a5 5 0 0 1 0 7.07"></path></svg></button>
+              </div>
+
+              <img class="card-photo" id="card-photo-back" alt="" />
+
+              <div class="card-example-box" id="card-example-container">
+                <div style="display:flex; align-items:flex-start; gap:8px; justify-content:space-between;">
+                  <p class="card-example-en" id="card-example">“Example sentence”</p>
+                  <button class="btn-audio btn-audio-sm" onclick="speakCurrentField('example', event)" title="Örnek cümleyi dinle"><svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><polygon points="11 5 6 9 2 9 2 15 6 15 11 19 11 5"></polygon><path d="M15.54 8.46a5 5 0 0 1 0 7.07"></path></svg></button>
+                </div>
+                <p class="card-example-tr" id="card-example-tr">Örnek çeviri</p>
+              </div>
+
+              <div class="card-tags" id="card-tags"></div>
+            </div>
+
+            <div class="card-footer-info" id="card-meta-text">
+              Son Tekrar: Bugün
+            </div>
+          </div>
+
+        </div>
+      </div>
+
+      <!-- Değerlendirme & İlerleme Butonları (Öğrendim / Hatırlamadım / Atla) -->
+      <div class="actions-grid">
+        <button class="btn-grade btn-again" onclick="gradeCard(false)" title="Hatırlamadım (1)">
+          <span>❌ Hatırlamadım</span>
+          <span class="shortcut-key" id="btn-again-sub">[ 1 ] Yarın Tekrar</span>
+        </button>
+        <button class="btn-grade btn-learned" onclick="gradeCard(true)" title="Öğrendim (2)">
+          <span id="btn-learned-title">✅ Öğrendim</span>
+          <span class="shortcut-key" id="btn-learned-sub">[ 2 ] +3 Gün</span>
+        </button>
+        <button class="btn-grade btn-skip" onclick="skipCard()" title="Atla (→)">
+          <span>⏭️ Atla</span>
+          <span class="shortcut-key">[ → ]</span>
+        </button>
+      </div>
+    </div>
+
+    <!-- Boş Durum (Tekrar Bittiğinde) -->
+    <div class="empty-state" id="study-empty" style="display: none;">
+      <h2 id="empty-title">Tebrikler! 🎉</h2>
+      <p id="empty-desc">Bugün tekrar edilecek tüm kartları tamamladın.</p>
+      <div style="display: flex; gap: 8px; justify-content: center; flex-wrap: wrap;">
+        <button class="btn-outline" onclick="startStudySession('all')">Tüm Kartlarla Pratik Yap</button>
+        <button class="btn-primary" onclick="openAddCardTab()">+ Yeni Kelime Ekle</button>
+      </div>
+    </div>
+
+    <div class="shortcuts-bar">
+      <span><span class="kbd">Boşluk</span> Çevir</span>
+      <span><span class="kbd">1</span> Hatırlamadım</span>
+      <span><span class="kbd">2</span> Öğrendim</span>
+      <span><span class="kbd">S</span> Dinle</span>
+      <span><span class="kbd">→</span> Atla</span>
+    </div>
+  </section>
+
+  <!-- 2. SEKME: YENİ KELİME EKLE KARTI -->
+  <section class="panel" id="view-add" style="display: none;">
+    <div class="add-card-view">
+      <div class="form-title-row">
+        <h3 id="add-form-title">Yeni Kelime Kartı Ekle</h3>
+        <button type="button" class="btn-outline" id="btn-cancel-edit-mode" onclick="cancelEditMode()" style="display: none; padding: 4px 10px; font-size: 0.75rem;">
+          İptal Et
+        </button>
+      </div>
+
+      <input type="hidden" id="input-card-id" value="" />
+
+      <div class="form-group">
+        <label for="input-word">Kelime / Deyim / Kalıp *</label>
+        <input type="text" id="input-word" placeholder="Örn: Persevere, break the ice, as soon as" autocomplete="off" />
+      </div>
+
+      <div class="form-group">
+        <label for="input-def">Anlam / Tanım (İngilizce) *</label>
+        <textarea id="input-def" rows="2" placeholder="e.g. to continue trying to do something despite difficulties"></textarea>
+      </div>
+
+      <div class="form-row">
+        <div class="form-group">
+          <label for="input-type">Kelime Türü</label>
+          <select id="input-type">
+            <option value="Kelime">Kelime</option>
+            <option value="Fiil (Verb)">Fiil (Verb)</option>
+            <option value="İsim (Noun)">İsim (Noun)</option>
+            <option value="Sıfat (Adj)">Sıfat (Adj)</option>
+            <option value="Zarf (Adv)">Zarf (Adv)</option>
+            <option value="Deyim (Idiom)">Deyim (Idiom)</option>
+            <option value="Kalıp (Phrase)">Kalıp (Phrase)</option>
+            <option value="Phrasal Verb">Phrasal Verb</option>
+          </select>
+        </div>
+        <div class="form-group">
+          <label for="input-level">Seviye</label>
+          <select id="input-level">
+            <option value="A1">A1</option>
+            <option value="A2">A2</option>
+            <option value="B1" selected>B1</option>
+            <option value="B2">B2</option>
+            <option value="C1">C1</option>
+            <option value="C2">C2</option>
+          </select>
+        </div>
+      </div>
+
+      <div class="form-group">
+        <label for="input-example">Örnek Cümle</label>
+        <input type="text" id="input-example" placeholder="e.g. She persevered in her studies despite many setbacks." />
+      </div>
+
+      <div class="form-group">
+        <label>Fotoğraf (isteğe bağlı)</label>
+        <div class="photo-picker">
+          <img class="photo-preview" id="photo-preview" alt="" />
+          <label class="btn-outline" style="cursor:pointer;">
+            📷 <span id="photo-btn-label">Fotoğraf Ekle</span>
+            <input type="file" id="input-photo" accept="image/*" onchange="onPhotoSelected(event)" style="display:none;" />
+          </label>
+          <button type="button" class="btn-outline" id="photo-remove-btn" onclick="removePhoto()" style="display:none;">🗑️ Kaldır</button>
+        </div>
+      </div>
+
+      <!-- Türkçe çeviri alanı kaldırıldı; eski kartlardaki veri korunur -->
+      <input type="hidden" id="input-example-tr" value="" />
+
+      <div class="form-row">
+        <div class="form-group">
+          <label for="input-tags">Kategoriler / Etiketler</label>
+          <input type="text" id="input-tags" placeholder="e.g. Business, Academic" />
+        </div>
+        <div class="form-group">
+          <label for="input-hint">İpucu (Hint)</label>
+          <input type="text" id="input-hint" placeholder="e.g. think: never give up" />
+        </div>
+      </div>
+
+      <!-- Kaydet / Vazgeç Butonları -->
+      <div class="form-actions-row">
+        <button type="button" class="btn-save-card" onclick="saveCardNow()">
+          <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><path d="M19 21H5a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h11l5 5v11a2 2 0 0 1-2 2z"></path><polyline points="17 21 17 13 7 13 7 21"></polyline><polyline points="7 3 7 8 15 8"></polyline></svg>
+          <span id="btn-save-label">Veritabanına Kaydet</span>
+        </button>
+        <button type="button" class="btn-cancel-card" onclick="switchMainTab('study')">
+          Vazgeç
+        </button>
+      </div>
+
+      <div id="add-feedback-msg" style="display: none; padding: 10px; border-radius: 8px; font-weight: 700; text-align: center; font-size: 0.9rem;"></div>
+    </div>
+  </section>
+
+  <!-- 3. SEKME: KARTLAR LİSTESİ & FİLTRELEME -->
+  <section class="panel" id="view-list" style="display: none;">
+    <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 12px;">
+      <h3 style="font-size: 1.1rem; font-weight: 700;">Kayıtlı Kartlar (<span id="list-count-badge">0 kart</span>)</h3>
+      <button class="btn-primary" onclick="openAddCardTab()" style="padding: 6px 12px; font-size: 0.8rem;">+ Yeni Kart</button>
+    </div>
+
+    <div class="filter-controls">
+      <div class="search-box">
+        <svg class="search-icon" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="11" cy="11" r="8"></circle><line x1="21" y1="21" x2="16.65" y2="16.65"></line></svg>
+        <input type="text" id="search-input" placeholder="Kelime, anlam veya etiket ara..." oninput="renderCardList()" />
+      </div>
+
+      <div class="filter-dropdowns">
+        <select id="filter-tag" onchange="renderCardList()">
+          <option value="">Tüm Kategoriler</option>
+        </select>
+        <select id="filter-level" onchange="renderCardList()">
+          <option value="">Tüm Seviyeler</option>
+          <option value="A1">A1</option>
+          <option value="A2">A2</option>
+          <option value="B1">B1</option>
+          <option value="B2">B2</option>
+          <option value="C1">C1</option>
+          <option value="C2">C2</option>
+        </select>
+        <select id="filter-status" onchange="renderCardList()">
+          <option value="">Tüm Durumlar</option>
+          <option value="due">Tekrar Vakti (Bugün)</option>
+          <option value="learning">Öğrenme Aşamasında (1-90 Gün)</option>
+          <option value="mastered">Tamamen Öğrenildi</option>
+        </select>
+      </div>
+    </div>
+
+    <div class="card-list-items" id="card-list-items"></div>
+  </section>
+
+  <!-- Veri Yönetimi & Excel Entegrasyonu -->
+  <section class="panel">
+    <h3 style="font-size: 1rem; font-weight: 700; margin-bottom: 10px;">Veri Yönetimi & Excel Entegrasyonu</h3>
+    <div class="data-grid">
+      <button class="btn-outline" onclick="exportCSV()">
+        <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z"></path><polyline points="14 2 14 8 20 8"></polyline><line x1="16" y1="13" x2="8" y2="13"></line><line x1="16" y1="17" x2="8" y2="17"></line><polyline points="10 9 9 9 8 9"></polyline></svg>
+        CSV İndir (Excel)
+      </button>
+      <label class="btn-outline" style="cursor: pointer;">
+        <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"/><polyline points="17 8 12 3 7 8"/><line x1="12" y1="3" x2="12" y2="15"/></svg>
+        CSV Yükle (Excel'den)
+        <input type="file" accept=".csv, .txt" onchange="importCSV(event)" style="display: none;" />
+      </label>
+      <button class="btn-outline" onclick="exportJSON()">
+        <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"/><polyline points="7 10 12 15 17 10"/><line x1="12" y1="15" x2="12" y2="3"/></svg>
+        JSON Yedekle
+      </button>
+      <label class="btn-outline" style="cursor: pointer;">
+        <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"/><polyline points="17 8 12 3 7 8"/><line x1="12" y1="3" x2="12" y2="15"/></svg>
+        JSON Yükle
+        <input type="file" accept=".json" onchange="importJSON(event)" style="display: none;" />
+      </label>
+    </div>
+    <div style="display: flex; justify-content: space-between; margin-top: 10px; font-size: 0.75rem;">
+      <a href="#" onclick="downloadSampleCSV(); return false;" style="color: var(--accent); text-decoration: none; font-weight: 600;">📥 Örnek Excel CSV Şablonu</a>
+      <a href="#" onclick="resetToDefaultCards(); return false;" style="color: var(--danger); text-decoration: none;">Örnek Kartları Yükle</a>
+    </div>
+  </section>
+</div>
+
+<!-- GİRİŞ EKRANI -->
+<div class="auth-overlay" id="auth-overlay">
+  <div class="auth-box" id="auth-login-box" style="display:none;">
+    <div class="brand-icon" style="margin: 0 auto; width: 56px; height: 56px; border-radius: 14px;">
+      <svg width="30" height="30" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><path d="M2 3h6a4 4 0 0 1 4 4v14a3 3 0 0 0-3-3H2z"></path><path d="M22 3h-6a4 4 0 0 0-4 4v14a3 3 0 0 1 3-3h7z"></path></svg>
+    </div>
+    <h2 id="auth-title">FlashCard'a Giriş</h2>
+    <p class="auth-sub">Kartların bulutta saklanır; bilgisayarda ve telefonda aynı anda kullanabilirsin.</p>
+    <div class="auth-error" id="auth-error"></div>
+    <div class="auth-info" id="auth-info"></div>
+    <div class="form-group">
+      <label for="auth-email">E-posta</label>
+      <input type="email" id="auth-email" autocomplete="username" placeholder="ornek@gmail.com" />
+    </div>
+    <div class="form-group">
+      <label for="auth-password">Şifre</label>
+      <input type="password" id="auth-password" autocomplete="current-password" placeholder="En az 6 karakter" onkeydown="if(event.key==='Enter')submitAuth()" />
+    </div>
+    <button class="btn-save-card" id="auth-submit" onclick="submitAuth()">Giriş Yap</button>
+    <div class="auth-links">
+      <a onclick="toggleAuthMode()" id="auth-toggle-link">İlk kez mi? Hesap oluştur</a>
+      <a onclick="forgotPassword()">Şifremi unuttum</a>
+    </div>
+  </div>
+
+  <div class="auth-box" id="auth-verify-box" style="display:none;">
+    <h2>📧 E-postanı Doğrula</h2>
+    <p class="auth-sub"><strong id="verify-email"></strong> adresine bir doğrulama linki gönderdik. Gmail'ini aç, linke tıkla, sonra buraya dönüp aşağıdaki butona bas. (Gelen kutunda yoksa Spam klasörüne de bak.)</p>
+    <div class="auth-error" id="verify-error"></div>
+    <div class="auth-info" id="verify-info"></div>
+    <button class="btn-save-card" onclick="checkVerified()">✅ Doğruladım, Devam Et</button>
+    <div class="auth-links">
+      <a onclick="resendVerification()">Linki tekrar gönder</a>
+      <a onclick="doSignOut()">Farklı hesap</a>
+    </div>
+  </div>
+
+  <div class="auth-box" id="auth-loading-box">
+    <p class="auth-sub" style="margin-top:40px;">Yükleniyor...</p>
+  </div>
+</div>
+
+<!-- Toast Bildirim Elemanı -->
+<div id="app-toast" class="toast"></div>
+
+<!-- ========================================== -->
+<!-- JAVASCRIPT: ARALIKLI TEKRAR & EXCEL YÖNETİMİ -->
+<!-- ========================================== -->
+<script>
+const STORAGE_KEY = 'flashcards_v2_data';
+const THEME_KEY = 'flashcards_theme';
+
+// Aralıklı Tekrar (SRS) Gün Aralıkları: 1 -> 3 -> 7 -> 30 -> 90 gün (kalıcı hafıza)
+const SRS_INTERVALS = [1, 3, 7, 30, 90];
+const SRS_TOTAL = SRS_INTERVALS.length;
+
+// Gece yarısı bazlı hedef zaman hesabı (Kullanıcı ertesi gün açtığında doğrudan vakti gelmiş sayılır)
+function calculateNextReviewTime(days, baseDate = new Date()) {
+  const d = new Date(baseDate.getFullYear(), baseDate.getMonth(), baseDate.getDate() + days, 0, 0, 0, 0);
+  return d.getTime();
+}
+
+// Kartın tekrar vaktinin gelip gelmediği kontrolü
+function isCardDue(card) {
+  if (card.mastered) return false;
+  if (!card.nextReview) return true;
+  return Date.now() >= card.nextReview;
+}
+
+// Kartın aşama bilgisini döndürür (SRS_INTERVALS dizisinden otomatik üretilir)
+function getStageInfo(stage, mastered) {
+  if (mastered || stage >= SRS_TOTAL) {
+    return {
+      title: "Tamamen Öğrenildi",
+      badgeClass: "badge-mastered",
+      badgeText: "⭐ Tamamen Öğrenildi",
+      nextIntervalText: "Tamamlandı",
+      stepNum: SRS_TOTAL
+    };
+  }
+  const s = (typeof stage === 'number' && stage >= 0) ? stage : 0;
+  const days = SRS_INTERVALS[s];
+  const isLast = s === SRS_TOTAL - 1;
+  return {
+    title: `${days}. Gün Kontrolü`,
+    badgeClass: "badge-stage",
+    badgeText: `⏱️ ${days}. Gün Kontrolü (Aşama ${s + 1}/${SRS_TOTAL})`,
+    nextIntervalText: isLast ? "Tamamla 🎉" : `+${SRS_INTERVALS[s + 1]} Gün (${s + 2}. Aşama)`,
+    stepNum: s + 1
+  };
+}
+
+// Eski veya eksik alanları olan kartları standart formata dönüştürür
+function normalizeCard(c) {
+  if (typeof c.stage !== 'number') {
+    const idx = SRS_INTERVALS.indexOf(c.interval);
+    c.stage = idx >= 0 ? idx : 0;
+  }
+  if (typeof c.mastered !== 'boolean') {
+    c.mastered = c.stage >= SRS_TOTAL;
+  }
+  // Aşama numarası ile aralık uyumunu koru (eski 1-3-5-7-30 sisteminden geçiş)
+  if (!c.mastered && c.stage < SRS_TOTAL) {
+    c.interval = SRS_INTERVALS[c.stage];
+  }
+  if (!c.nextReview && !c.mastered) {
+    c.nextReview = calculateNextReviewTime(1);
+  }
+  return c;
+}
+
+// Varsayılan kartlar (1-3-7-30-90 gün aralıklı tekrar sistemine uygun)
+const DEFAULT_CARDS = [
+  {
+    id: 101,
+    word: "Persevere",
+    definition: "To continue trying to do something despite difficulties or delays",
+    type: "Fiil (Verb)",
+    level: "B2",
+    tags: ["Akademik", "Kişisel Gelişim"],
+    example: "She persevered in her studies and graduated with high honors.",
+    example_tr: "",
+    hint: "Never give up mantığı",
+    stage: 0,
+    interval: 1,
+    dateAdded: Date.now() - (2 * 86400000),
+    lastReviewed: null,
+    nextReview: Date.now() - 1000,
+    mastered: false
+  },
+  {
+    id: 102,
+    word: "Resilient",
+    definition: "Able to recover quickly from difficult situations",
+    type: "Sıfat (Adj)",
+    level: "B2",
+    tags: ["Psikoloji", "İş Hayatı"],
+    example: "Resilient teams adapt quickly to unexpected market changes.",
+    example_tr: "",
+    hint: "Esnek ve sağlam durabilen",
+    stage: 1,
+    interval: 3,
+    dateAdded: Date.now() - (4 * 86400000),
+    lastReviewed: Date.now() - (3 * 86400000),
+    nextReview: Date.now() - 3600000,
+    mastered: false
+  },
+  {
+    id: 103,
+    word: "Meticulous",
+    definition: "Very careful and paying close attention to every detail",
+    type: "Sıfat (Adj)",
+    level: "C1",
+    tags: ["İş Hayatı", "Akademik"],
+    example: "The scientist was meticulous in recording every detail of the experiment.",
+    example_tr: "",
+    hint: "Detaycı / Çok özenli",
+    stage: 2,
+    interval: 7,
+    dateAdded: Date.now() - (6 * 86400000),
+    lastReviewed: Date.now() - (5 * 86400000),
+    nextReview: calculateNextReviewTime(1),
+    mastered: false
+  },
+  {
+    id: 104,
+    word: "Ubiquitous",
+    definition: "Seeming to be everywhere at the same time; very common",
+    type: "Sıfat (Adj)",
+    level: "C1",
+    tags: ["Teknoloji", "Günlük"],
+    example: "Smartphones have become ubiquitous in modern society.",
+    example_tr: "",
+    hint: "Her köşe başında olan",
+    stage: 4,
+    interval: 90,
+    dateAdded: Date.now() - (20 * 86400000),
+    lastReviewed: Date.now() - (10 * 86400000),
+    nextReview: calculateNextReviewTime(10),
+    mastered: false
+  }
+];
+
+let cards = [];
+let studyDeck = [];
+let currentStudyIndex = 0;
+let isStudyFlipped = false;
+let studyMode = 'due';
+let toastTimeout = null;
+
+// ==========================================
+// BAŞLATICI & DEPOLAMA
+// ==========================================
+
+let cloudLoaded = false;
+let pendingImage = null;   // dataURL = yeni fotoğraf, 'remove' = kaldır, null = değişiklik yok
+const imageCache = {};
+
+function initApp() {
+  loadTheme();
+  setupKeyboardShortcuts();
+  registerServiceWorker();
+  window.addEventListener('online', () => setSyncState('ok'));
+  window.addEventListener('offline', () => setSyncState());
+  setSyncState();
+  // Firebase modülü 15 sn içinde yüklenmezse uyar
+  setTimeout(() => {
+    if (!window.cloud) {
+      showAuthBox('login');
+      showAuthError('Bağlantı kurulamadı. İnternetini kontrol edip sayfayı yenile.');
+    }
+  }, 15000);
+}
+
+// ---------- Bulut (Firebase) köprüsü ----------
+
+function persistCard(card) {
+  if (!window.cloud) return;
+  setSyncState('pending');
+  window.cloud.saveCard(card).catch(handleCloudWriteError);
+}
+
+function persistMany(list) {
+  if (!window.cloud || list.length === 0) return;
+  setSyncState('pending');
+  window.cloud.saveMany(list).catch(handleCloudWriteError);
+}
+
+function persistDelete(id) {
+  if (!window.cloud) return;
+  setSyncState('pending');
+  window.cloud.deleteCard(id).catch(handleCloudWriteError);
+}
+
+function handleCloudWriteError(err) {
+  console.error(err);
+  showToast('⚠️ Kaydedilemedi: ' + (err && err.code ? err.code : err), 'warning');
+}
+
+// Firebase her değişiklikte (bu cihazdan veya diğer cihazdan) burayı çağırır
+window.onCloudCards = function(list, meta) {
+  const incoming = list.map(normalizeCard).sort((a, b) => (b.dateAdded || 0) - (a.dateAdded || 0));
+  const justAddedIds = new Set(cards.filter(c => c.justAdded).map(c => c.id));
+  incoming.forEach(c => { if (justAddedIds.has(c.id)) c.justAdded = true; });
+  cards = incoming;
+  setSyncState(meta && meta.pending ? 'pending' : 'ok');
+
+  if (!cloudLoaded) {
+    cloudLoaded = true;
+    document.getElementById('study-loading').style.display = 'none';
+    populateTagFilter();
+    startStudySession('due');
+    renderCardList();
+    updateStats();
+    offerLegacyMigration();
+    return;
+  }
+
+  // Çalışma destesini koru, sadece kart içeriklerini tazele
+  const byId = new Map(cards.map(c => [c.id, c]));
+  const currentId = studyDeck[currentStudyIndex] ? studyDeck[currentStudyIndex].id : null;
+  studyDeck = studyDeck.filter(c => byId.has(c.id)).map(c => byId.get(c.id));
+  const newIndex = currentId === null ? -1 : studyDeck.findIndex(c => c.id === currentId);
+  if (newIndex !== -1) {
+    currentStudyIndex = newIndex;
+  } else if (currentId !== null) {
+    renderStudyCard();
+  }
+  if (studyMode === 'due') {
+    // Diğer cihazda eklenen veya vakti gelen kartları destenin sonuna ekle
+    const inDeck = new Set(studyDeck.map(c => c.id));
+    const extra = cards.filter(c => isCardDue(c) && !inDeck.has(c.id));
+    if (extra.length > 0) {
+      const wasEmpty = currentStudyIndex >= studyDeck.length;
+      extra.forEach(c => studyDeck.push(c));
+      if (wasEmpty) renderStudyCard();
+    }
+  }
+  populateTagFilter();
+  renderCardList();
+  updateStats();
+  updateStudyProgress();
+};
+
+window.onCloudSignedIn = function(email) {
+  document.getElementById('auth-overlay').style.display = 'none';
+  try { localStorage.setItem('flashcards_last_email', email || ''); } catch (e) {}
+};
+
+window.onCloudNeedsVerify = function(email) {
+  document.getElementById('verify-email').textContent = email;
+  document.getElementById('auth-overlay').style.display = 'flex';
+  showAuthBox('verify');
+};
+
+window.onCloudSignedOut = function() {
+  cards = [];
+  studyDeck = [];
+  cloudLoaded = false;
+  document.getElementById('study-loading').style.display = 'block';
+  document.getElementById('study-active-view').style.display = 'none';
+  document.getElementById('study-empty').style.display = 'none';
+  renderCardList();
+  updateStats();
+  document.getElementById('auth-overlay').style.display = 'flex';
+  try {
+    const last = localStorage.getItem('flashcards_last_email');
+    if (last) document.getElementById('auth-email').value = last;
+  } catch (e) {}
+  showAuthBox('login');
+};
+
+window.onCloudError = function(err) {
+  console.error(err);
+  if (err && err.code === 'permission-denied') {
+    showToast('⛔ Bu hesabın kartlara erişim izni yok.', 'warning');
+  } else {
+    showToast('⚠️ Senkronizasyon hatası: ' + (err && err.code ? err.code : err), 'warning');
+  }
+};
+
+function setSyncState(state) {
+  const el = document.getElementById('sync-pill');
+  if (!el) return;
+  if (!navigator.onLine) { el.className = 'sync-pill offline'; el.textContent = '📴 Çevrimdışı'; return; }
+  if (state === 'pending') { el.className = 'sync-pill pending'; el.textContent = '⏳ Kaydediliyor'; return; }
+  if (state === 'ok') { el.className = 'sync-pill ok'; el.textContent = '☁️ Senkron'; return; }
+  el.className = 'sync-pill'; el.textContent = '…';
+}
+
+// Bu tarayıcıda eski (yerel) kartlar varsa buluta taşımayı teklif et
+function offerLegacyMigration() {
+  try {
+    const raw = localStorage.getItem(STORAGE_KEY) || localStorage.getItem('flashcards');
+    if (!raw || localStorage.getItem('flashcards_migrated')) return;
+    const local = JSON.parse(raw).map(normalizeCard);
+    const existing = new Set(cards.map(c => String(c.id)));
+    const toUpload = local.filter(c => !existing.has(String(c.id)));
+    localStorage.setItem('flashcards_migrated', '1');
+    if (toUpload.length === 0) return;
+    if (confirm(`Bu cihazda daha önce kaydedilmiş ${toUpload.length} kart bulundu. Buluta aktarılsın mı?`)) {
+      persistMany(toUpload);
+      showToast(`☁️ ${toUpload.length} kart buluta aktarılıyor...`);
+    }
+  } catch (e) { console.error(e); }
+}
+
+// ---------- Giriş ekranı ----------
+
+let authMode = 'login';
+
+function showAuthBox(which) {
+  document.getElementById('auth-login-box').style.display = which === 'login' ? 'flex' : 'none';
+  document.getElementById('auth-verify-box').style.display = which === 'verify' ? 'flex' : 'none';
+  document.getElementById('auth-loading-box').style.display = which === 'loading' ? 'flex' : 'none';
+}
+
+function showAuthError(msg, id = 'auth-error') {
+  const el = document.getElementById(id);
+  el.textContent = msg;
+  el.style.display = msg ? 'block' : 'none';
+}
+
+function showAuthInfo(msg, id = 'auth-info') {
+  const el = document.getElementById(id);
+  el.textContent = msg;
+  el.style.display = msg ? 'block' : 'none';
+}
+
+function toggleAuthMode() {
+  authMode = authMode === 'login' ? 'signup' : 'login';
+  document.getElementById('auth-title').textContent = authMode === 'login' ? "FlashCard'a Giriş" : 'Hesap Oluştur';
+  document.getElementById('auth-submit').textContent = authMode === 'login' ? 'Giriş Yap' : 'Hesap Oluştur';
+  document.getElementById('auth-toggle-link').textContent = authMode === 'login' ? 'İlk kez mi? Hesap oluştur' : 'Zaten hesabım var, giriş yap';
+  document.getElementById('auth-password').setAttribute('autocomplete', authMode === 'login' ? 'current-password' : 'new-password');
+  showAuthError('');
+  showAuthInfo('');
+}
+
+function authErrorText(err) {
+  const code = err && err.code ? err.code : '';
+  const map = {
+    'auth/invalid-email': 'E-posta adresi geçersiz.',
+    'auth/missing-email': 'E-posta adresini yazmayı unuttun.',
+    'auth/missing-password': 'Şifreyi yazmayı unuttun.',
+    'auth/weak-password': 'Şifre en az 6 karakter olmalı.',
+    'auth/email-already-in-use': 'Bu e-posta ile zaten hesap var. "Giriş yap"ı kullan.',
+    'auth/invalid-credential': 'E-posta veya şifre hatalı.',
+    'auth/wrong-password': 'Şifre hatalı.',
+    'auth/user-not-found': 'Bu e-posta ile hesap yok. Önce "Hesap oluştur".',
+    'auth/too-many-requests': 'Çok fazla deneme yapıldı. Biraz bekleyip tekrar dene.',
+    'auth/network-request-failed': 'İnternet bağlantısı yok gibi görünüyor.'
+  };
+  return map[code] || ('Bir hata oluştu: ' + (code || err));
+}
+
+async function submitAuth() {
+  if (!window.cloud) { showAuthError('Bağlantı henüz hazır değil, birkaç saniye sonra tekrar dene.'); return; }
+  const email = document.getElementById('auth-email').value.trim();
+  const pass = document.getElementById('auth-password').value;
+  showAuthError(''); showAuthInfo('');
+  const btn = document.getElementById('auth-submit');
+  btn.disabled = true;
+  try {
+    if (authMode === 'login') await window.cloud.signIn(email, pass);
+    else await window.cloud.signUp(email, pass);
+    document.getElementById('auth-password').value = '';
+  } catch (err) {
+    showAuthError(authErrorText(err));
+  } finally {
+    btn.disabled = false;
+  }
+}
+
+async function forgotPassword() {
+  const email = document.getElementById('auth-email').value.trim();
+  if (!email) { showAuthError('Önce e-posta adresini yaz, sonra "Şifremi unuttum"a bas.'); return; }
+  try {
+    await window.cloud.resetPassword(email);
+    showAuthError('');
+    showAuthInfo('Şifre sıfırlama linki e-postana gönderildi.');
+  } catch (err) { showAuthError(authErrorText(err)); }
+}
+
+async function checkVerified() {
+  showAuthError('', 'verify-error');
+  try {
+    const ok = await window.cloud.checkVerified();
+    if (!ok) showAuthError("Henüz doğrulanmamış görünüyor. Gmail'deki linke tıkladığından emin ol.", 'verify-error');
+  } catch (err) { showAuthError(authErrorText(err), 'verify-error'); }
+}
+
+async function resendVerification() {
+  try {
+    await window.cloud.resendVerification();
+    showAuthInfo('Doğrulama linki tekrar gönderildi.', 'verify-info');
+  } catch (err) { showAuthError(authErrorText(err), 'verify-error'); }
+}
+
+function doSignOut() {
+  if (window.cloud) window.cloud.signOut();
+}
+
+function openAccountMenu() {
+  const email = window.cloud ? window.cloud.email : '';
+  if (confirm(`Giriş yapılan hesap:\n${email || '-'}\n\nÇıkış yapmak istiyor musun?`)) doSignOut();
+}
+
+// ==========================================
+// SEKME YÖNETİMİ
+// ==========================================
+
+function switchMainTab(tab) {
+  document.getElementById('view-study').style.display = (tab === 'study') ? 'block' : 'none';
+  document.getElementById('view-add').style.display = (tab === 'add') ? 'block' : 'none';
+  document.getElementById('view-list').style.display = (tab === 'list') ? 'block' : 'none';
+
+  document.getElementById('tab-btn-study').classList.toggle('active', tab === 'study');
+  document.getElementById('tab-btn-add').classList.toggle('active', tab === 'add');
+  document.getElementById('tab-btn-list').classList.toggle('active', tab === 'list');
+
+  if (tab === 'add') {
+    setTimeout(() => {
+      const inputWord = document.getElementById('input-word');
+      if (inputWord) inputWord.focus();
+    }, 150);
+  } else if (tab === 'list') {
+    renderCardList();
+  } else if (tab === 'study') {
+    renderStudyCard();
+  }
+}
+
+function openAddCardTab() {
+  cancelEditMode();
+  switchMainTab('add');
+}
+
+function cancelEditMode() {
+  document.getElementById('input-card-id').value = '';
+  document.getElementById('input-word').value = '';
+  document.getElementById('input-def').value = '';
+  document.getElementById('input-type').value = 'Kelime';
+  document.getElementById('input-level').value = 'B1';
+  document.getElementById('input-example').value = '';
+  document.getElementById('input-example-tr').value = '';
+  document.getElementById('input-tags').value = '';
+  document.getElementById('input-hint').value = '';
+  pendingImage = null;
+  setPhotoPreview(null);
+
+  document.getElementById('add-form-title').textContent = "Yeni Kelime Kartı Ekle";
+  document.getElementById('btn-save-label').textContent = "Veritabanına Kaydet";
+  document.getElementById('btn-cancel-edit-mode').style.display = 'none';
+  document.getElementById('add-feedback-msg').style.display = 'none';
+}
+
+// ==========================================
+// KELİME KAYDETME (1. GÜN İLE BAŞLAR)
+// ==========================================
+
+function saveCardNow() {
+  const word = document.getElementById('input-word').value.trim();
+  const def = document.getElementById('input-def').value.trim();
+  const feedbackEl = document.getElementById('add-feedback-msg');
+
+  if (!word || !def) {
+    if (feedbackEl) {
+      feedbackEl.style.display = 'block';
+      feedbackEl.style.background = 'var(--danger-faint)';
+      feedbackEl.style.color = 'var(--danger)';
+      feedbackEl.textContent = '⚠️ Lütfen en azından Kelime ve Anlam alanlarını doldurun.';
+    }
+    showToast("Kelime ve Anlam alanları zorunludur.", "warning");
+    if (!word) document.getElementById('input-word').focus();
+    else document.getElementById('input-def').focus();
+    return;
+  }
+
+  const type = document.getElementById('input-type').value;
+  const level = document.getElementById('input-level').value;
+  const example = document.getElementById('input-example').value.trim();
+  const example_tr = document.getElementById('input-example-tr').value.trim();
+  const rawTags = document.getElementById('input-tags').value.trim();
+  const hint = document.getElementById('input-hint').value.trim();
+  const tags = rawTags ? rawTags.split(',').map(t => t.trim()).filter(Boolean) : [];
+
+  const editId = document.getElementById('input-card-id').value;
+
+  if (editId) {
+    // Düzenleme Modu
+    const cardIndex = cards.findIndex(c => c.id == editId);
+    if (cardIndex !== -1) {
+      cards[cardIndex].word = word;
+      cards[cardIndex].definition = def;
+      cards[cardIndex].type = type;
+      cards[cardIndex].level = level;
+      cards[cardIndex].example = example;
+      cards[cardIndex].example_tr = example_tr;
+      cards[cardIndex].tags = tags;
+      cards[cardIndex].hint = hint;
+      cards[cardIndex].justAdded = true;
+      applyPendingImage(cards[cardIndex]);
+
+      const studyIdx = studyDeck.findIndex(c => c.id == editId);
+      if (studyIdx !== -1) {
+        Object.assign(studyDeck[studyIdx], cards[cardIndex]);
+      }
+      persistCard(cards[cardIndex]);
+    }
+    populateTagFilter();
+    cancelEditMode();
+    switchMainTab('study');
+    showToast(`✅ "${word}" kartı güncellendi!`);
+  } else {
+    // Yeni Kart Modu: İlk kontrol tam 1 gün sonraya planlanır
+    const newCard = {
+      id: Date.now(),
+      word,
+      definition: def,
+      type,
+      level,
+      example,
+      example_tr,
+      tags,
+      hint,
+      stage: 0,
+      interval: 1,
+      dateAdded: Date.now(),
+      lastReviewed: null,
+      nextReview: calculateNextReviewTime(1), // 1 gün sonra
+      mastered: false,
+      hasImage: false,
+      justAdded: true
+    };
+
+    applyPendingImage(newCard);
+    cards.unshift(newCard);
+    persistCard(newCard);
+    updateStats();
+    populateTagFilter();
+    cancelEditMode();
+
+    switchMainTab('study');
+    startStudySession(studyMode);
+    showToast(`✅ "${word}" kaydedildi! 1. gün tekrarı yarın başlayacak.`);
+  }
+}
+
+function editCard(cardId) {
+  const card = cards.find(c => c.id === cardId);
+  if (!card) return;
+
+  document.getElementById('input-card-id').value = card.id;
+  document.getElementById('input-word').value = card.word || '';
+  document.getElementById('input-def').value = card.definition || '';
+  const typeSel = document.getElementById('input-type');
+  typeSel.value = card.type === 'Deyim / Kalıp' ? 'Deyim (Idiom)' : (card.type || 'Kelime');
+  if (!typeSel.value) typeSel.value = 'Kelime';
+  document.getElementById('input-level').value = card.level || 'B1';
+  document.getElementById('input-example').value = card.example || '';
+  document.getElementById('input-example-tr').value = card.example_tr || '';
+  document.getElementById('input-tags').value = (card.tags || []).join(', ');
+  document.getElementById('input-hint').value = card.hint || '';
+  pendingImage = null;
+  setPhotoPreview(null);
+  if (card.hasImage) {
+    loadCardImage(card.id).then(url => {
+      if (url && document.getElementById('input-card-id').value == card.id && pendingImage === null) setPhotoPreview(url);
+    });
+  }
+
+  document.getElementById('add-form-title').textContent = `Kartı Düzenle: ${card.word}`;
+  document.getElementById('btn-save-label').textContent = "Değişiklikleri Kaydet";
+  document.getElementById('btn-cancel-edit-mode').style.display = 'inline-block';
+  document.getElementById('add-feedback-msg').style.display = 'none';
+
+  switchMainTab('add');
+}
+
+function deleteCard(id, e) {
+  if (e) e.stopPropagation();
+  if (!confirm("Bu kelime kartını silmek istediğinize emin misiniz?")) return;
+
+  const deletedCard = cards.find(c => c.id === id);
+  cards = cards.filter(c => c.id !== id);
+  studyDeck = studyDeck.filter(c => c.id !== id);
+  delete imageCache[id];
+
+  persistDelete(id);
+  updateStats();
+  populateTagFilter();
+  renderCardList();
+  renderStudyCard();
+
+  showToast(`🗑️ "${deletedCard ? deletedCard.word : 'Kart'}" silindi.`, 'warning');
+}
+
+// ==========================================
+// ARALIKLI TEKRAR (SRS) 1-3-7-30-90 GÜN
+// ==========================================
+
+function startStudySession(mode = studyMode) {
+  studyMode = mode;
+  isStudyFlipped = false;
+  currentStudyIndex = 0;
+
+  document.getElementById('btn-mode-due').classList.toggle('active', mode === 'due');
+  document.getElementById('btn-mode-all').classList.toggle('active', mode === 'all');
+
+  if (studyMode === 'due') {
+    studyDeck = cards.filter(isCardDue);
+    studyDeck.sort((a, b) => (a.nextReview || 0) - (b.nextReview || 0));
+  } else {
+    studyDeck = [...cards];
+  }
+
+  renderStudyCard();
+}
+
+function flipStudyCard() {
+  if (studyDeck.length === 0) return;
+  isStudyFlipped = !isStudyFlipped;
+  const cardInner = document.getElementById('flashcard-inner');
+  cardInner.classList.toggle('is-flipped', isStudyFlipped);
+}
+
+function renderStudyCard() {
+  const cardInner = document.getElementById('flashcard-inner');
+  isStudyFlipped = false;
+  cardInner.classList.remove('is-flipped');
+
+  const studyEmptyEl = document.getElementById('study-empty');
+  const studyActiveEl = document.getElementById('study-active-view');
+
+  if (studyDeck.length === 0 || currentStudyIndex >= studyDeck.length) {
+    studyActiveEl.style.display = 'none';
+    studyEmptyEl.style.display = 'block';
+
+    const emptyTitle = document.getElementById('empty-title');
+    const emptyDesc = document.getElementById('empty-desc');
+
+    if (studyMode === 'due') {
+      emptyTitle.textContent = "Tebrikler! 🎉";
+      emptyDesc.textContent = "Bugün için tekrar edilecek tüm kelimeleri tamamladınız. Yeni veya vakti gelen kelimeler gün değiştikçe ekranınıza gelecektir.";
+    } else {
+      emptyTitle.textContent = "Kart Bulunamadı 📭";
+      emptyDesc.textContent = "Kütüphanenizde henüz kelime yok. Yeni Ekle sekmesinden veya Excel yükleyerek başlayabilirsiniz.";
+    }
+    updateStudyProgress();
+    return;
+  }
+
+  studyEmptyEl.style.display = 'none';
+  studyActiveEl.style.display = 'block';
+
+  const card = studyDeck[currentStudyIndex];
+  const stage = typeof card.stage === 'number' ? card.stage : 0;
+  const stageInfo = getStageInfo(stage, card.mastered);
+
+  // Kart Bilgileri
+  const wordEl = document.getElementById('card-word');
+  wordEl.textContent = card.word;
+  wordEl.classList.toggle('is-long', card.word.length > 18 && card.word.length <= 35);
+  wordEl.classList.toggle('is-very-long', card.word.length > 35);
+  document.getElementById('card-type-badge').textContent = card.type || 'Kelime';
+  document.getElementById('card-level-badge').textContent = card.level || 'B1';
+
+  // Aşama Rozeti
+  const stageBadge = document.getElementById('card-stage-badge');
+  stageBadge.className = `badge ${stageInfo.badgeClass}`;
+  stageBadge.textContent = stageInfo.badgeText;
+
+  // 5 Aşamalı SRS Göstergesi (1G, 3G, 7G, 30G, 90G)
+  const timelineEl = document.getElementById('card-srs-timeline');
+  timelineEl.innerHTML = '';
+  SRS_INTERVALS.forEach((days, idx) => {
+    const dot = document.createElement('span');
+    dot.className = 'srs-step-dot';
+    dot.textContent = `${days}G`;
+    if (card.mastered || stage > idx) {
+      dot.classList.add('completed');
+    } else if (stage === idx) {
+      dot.classList.add('active');
+    }
+    timelineEl.appendChild(dot);
+  });
+
+  // Buton Metinleri Güncelleme
+  const btnLearnedSub = document.getElementById('btn-learned-sub');
+  const btnLearnedTitle = document.getElementById('btn-learned-title');
+  if (card.mastered) {
+    btnLearnedTitle.textContent = "✅ Hatırlandı";
+    btnLearnedSub.textContent = "[ 2 ] Hafızada";
+  } else if (stage === SRS_TOTAL - 1) {
+    btnLearnedTitle.textContent = "🎉 Tamamla (Öğrenildi)";
+    btnLearnedSub.textContent = "[ 2 ] Tamamen Hafızaya Al";
+  } else {
+    btnLearnedTitle.textContent = "✅ Öğrendim";
+    btnLearnedSub.textContent = `[ 2 ] ${stageInfo.nextIntervalText}`;
+  }
+
+  // İpucu
+  const hintBtn = document.getElementById('card-hint-btn');
+  const hintText = document.getElementById('card-hint-text');
+  if (card.hint) {
+    hintBtn.style.display = 'inline-flex';
+    hintText.style.display = 'none';
+    hintText.textContent = `💡 İpucu: ${card.hint}`;
+  } else {
+    hintBtn.style.display = 'none';
+    hintText.style.display = 'none';
+  }
+
+  const defEl = document.getElementById('card-def');
+  defEl.textContent = card.definition;
+  defEl.classList.toggle('is-long', card.definition.length > 60);
+
+  // Fotoğraf (önde butonla, arkada otomatik)
+  const photoBtn = document.getElementById('card-photo-btn');
+  const photoFront = document.getElementById('card-photo-front');
+  const photoBack = document.getElementById('card-photo-back');
+  photoFront.style.display = 'none';
+  photoBack.style.display = 'none';
+  photoFront.removeAttribute('src');
+  photoBack.removeAttribute('src');
+  photoBtn.style.display = card.hasImage ? 'inline-flex' : 'none';
+  if (card.hasImage) {
+    const cid = card.id;
+    loadCardImage(cid).then(url => {
+      const cur = studyDeck[currentStudyIndex];
+      if (!url || !cur || cur.id !== cid) return;
+      photoFront.src = url;
+      photoBack.src = url;
+      photoBack.style.display = 'block';
+    });
+  }
+
+  // Örnek Cümle
+  const exContainer = document.getElementById('card-example-container');
+  if (card.example) {
+    exContainer.style.display = 'block';
+    document.getElementById('card-example').textContent = `“${card.example}”`;
+    const exTrEl = document.getElementById('card-example-tr');
+    exTrEl.textContent = card.example_tr || '';
+    exTrEl.style.display = card.example_tr ? 'block' : 'none';
+  } else {
+    exContainer.style.display = 'none';
+  }
+
+  // Etiketler
+  const tagsContainer = document.getElementById('card-tags');
+  tagsContainer.innerHTML = '';
+  if (card.tags && card.tags.length > 0) {
+    card.tags.forEach(t => {
+      const sp = document.createElement('span');
+      sp.className = 'tag-pill';
+      sp.textContent = `#${t}`;
+      tagsContainer.appendChild(sp);
+    });
+  }
+
+  // Arka yüz alt bilgi
+  const metaText = document.getElementById('card-meta-text');
+  if (card.mastered) {
+    metaText.textContent = `⭐ Tamamen Öğrenildi! Son Tekrar: ${formatRelativeTime(card.lastReviewed)}`;
+  } else if (card.lastReviewed) {
+    metaText.textContent = `Son Tekrar: ${formatRelativeTime(card.lastReviewed)} • Mevcut Aralık: ${card.interval || 1} gün`;
+  } else {
+    metaText.textContent = `Yeni Kelime (1. gün kontrolü)`;
+  }
+
+  updateStudyProgress();
+}
+
+function toggleHint(e) {
+  if (e) e.stopPropagation();
+  document.getElementById('card-hint-btn').style.display = 'none';
+  document.getElementById('card-hint-text').style.display = 'block';
+}
+
+// Kartı Değerlendirme (learned = true / false)
+function gradeCard(learned) {
+  if (studyDeck.length === 0 || currentStudyIndex >= studyDeck.length) return;
+
+  const currentCard = studyDeck[currentStudyIndex];
+  const currentStage = typeof currentCard.stage === 'number' ? currentCard.stage : 0;
+
+  if (learned) {
+    // Öğrendim: Bir sonraki aşamaya geçir (1 -> 3 -> 7 -> 30 -> 90 gün)
+    if (currentStage < SRS_INTERVALS.length - 1) {
+      const nextStage = currentStage + 1;
+      const nextDays = SRS_INTERVALS[nextStage];
+      currentCard.stage = nextStage;
+      currentCard.interval = nextDays;
+      currentCard.lastReviewed = Date.now();
+      currentCard.nextReview = calculateNextReviewTime(nextDays);
+      currentCard.mastered = false;
+      showToast(`👍 "${currentCard.word}" için sonraki kontrol ${nextDays} gün sonra.`);
+    } else {
+      // 90 günlük 5. aşamayı tamamladı -> Tamamen Öğrenildi!
+      currentCard.stage = SRS_INTERVALS.length; // 5
+      currentCard.interval = SRS_INTERVALS[SRS_TOTAL - 1];
+      currentCard.lastReviewed = Date.now();
+      currentCard.nextReview = null;
+      currentCard.mastered = true;
+      showToast(`🎉 Tebrikler! "${currentCard.word}" kelimesini tamamen öğrendiniz!`);
+    }
+  } else {
+    // Hatırlamadım: Aşamayı sıfırla, yarın (1 gün sonra) tekrar karşıya çıkar
+    currentCard.stage = 0;
+    currentCard.interval = 1;
+    currentCard.lastReviewed = Date.now();
+    currentCard.nextReview = calculateNextReviewTime(1);
+    currentCard.mastered = false;
+    showToast(`🔄 "${currentCard.word}" yarın tekrar sorulacak.`, 'warning');
+  }
+
+  // Veritabanını güncelle
+  const mainIndex = cards.findIndex(c => c.id === currentCard.id);
+  if (mainIndex !== -1) {
+    cards[mainIndex] = currentCard;
+  }
+  persistCard(currentCard);
+  updateStats();
+
+  currentStudyIndex++;
+  renderStudyCard();
+  renderCardList();
+}
+
+function skipCard() {
+  if (studyDeck.length === 0) return;
+  currentStudyIndex++;
+  if (currentStudyIndex >= studyDeck.length) {
+    currentStudyIndex = 0;
+  }
+  renderStudyCard();
+}
+
+function updateStudyProgress() {
+  const total = studyDeck.length;
+  const current = Math.min(currentStudyIndex + 1, total);
+  const percent = total > 0 ? (currentStudyIndex / total) * 100 : 100;
+
+  document.getElementById('study-counter-text').textContent = total > 0 ? `${current} / ${total}` : '0 / 0';
+  document.getElementById('study-progress-bar').style.width = `${percent}%`;
+}
+
+// ==========================================
+// SES VE TELAFFUZ
+// ==========================================
+
+function speakCurrentWord(e) {
+  if (e) e.stopPropagation();
+  if (studyDeck.length === 0 || currentStudyIndex >= studyDeck.length) return;
+  speakText(studyDeck[currentStudyIndex].word);
+}
+
+function speakCurrentField(field, e) {
+  if (e) e.stopPropagation();
+  if (studyDeck.length === 0 || currentStudyIndex >= studyDeck.length) return;
+  const text = studyDeck[currentStudyIndex][field];
+  if (text) speakText(text);
+}
+
+function speakText(text, lang = 'en-US') {
+  if (!('speechSynthesis' in window)) {
+    alert("Tarayıcınız ses motorunu desteklemiyor.");
+    return;
+  }
+  window.speechSynthesis.cancel();
+  const utterance = new SpeechSynthesisUtterance(text);
+  utterance.lang = lang;
+  utterance.rate = 0.9;
+  window.speechSynthesis.speak(utterance);
+}
+
+// ==========================================
+// KART LİSTELEME & ARAMA
+// ==========================================
+
+function populateTagFilter() {
+  const select = document.getElementById('filter-tag');
+  const currentVal = select.value;
+  const allTags = new Set();
+  cards.forEach(c => (c.tags || []).forEach(t => allTags.add(t)));
+
+  select.innerHTML = '<option value="">Tüm Kategoriler</option>';
+  Array.from(allTags).sort().forEach(tag => {
+    const opt = document.createElement('option');
+    opt.value = tag;
+    opt.textContent = tag;
+    select.appendChild(opt);
+  });
+  select.value = currentVal;
+}
+
+function renderCardList() {
+  const listEl = document.getElementById('card-list-items');
+  const searchVal = document.getElementById('search-input').value.toLowerCase().trim();
+  const filterTag = document.getElementById('filter-tag').value;
+  const filterLevel = document.getElementById('filter-level').value;
+  const filterStatus = document.getElementById('filter-status').value;
+
+  let filtered = cards.filter(card => {
+    const matchesSearch = !searchVal || 
+      card.word.toLowerCase().includes(searchVal) ||
+      card.definition.toLowerCase().includes(searchVal) ||
+      (card.example && card.example.toLowerCase().includes(searchVal)) ||
+      (card.tags && card.tags.some(t => t.toLowerCase().includes(searchVal)));
+
+    const matchesTag = !filterTag || (card.tags && card.tags.includes(filterTag));
+    const matchesLevel = !filterLevel || card.level === filterLevel;
+
+    let matchesStatus = true;
+    if (filterStatus === 'due') {
+      matchesStatus = isCardDue(card);
+    } else if (filterStatus === 'learning') {
+      matchesStatus = !card.mastered && (card.stage < SRS_TOTAL);
+    } else if (filterStatus === 'mastered') {
+      matchesStatus = card.mastered || (card.stage >= SRS_TOTAL);
+    }
+
+    return matchesSearch && matchesTag && matchesLevel && matchesStatus;
+  });
+
+  document.getElementById('list-count-badge').textContent = `${filtered.length} kart`;
+  document.getElementById('nav-count').textContent = cards.length;
+
+  if (filtered.length === 0) {
+    listEl.innerHTML = `<div class="empty-state"><p>Kriterlere uygun kelime kartı bulunamadı.</p></div>`;
+    return;
+  }
+
+  listEl.innerHTML = '';
+  filtered.forEach(card => {
+    const isDue = isCardDue(card);
+    const stage = typeof card.stage === 'number' ? card.stage : 0;
+    const stageInfo = getStageInfo(stage, card.mastered);
+
+    const item = document.createElement('div');
+    item.className = `card-item ${isDue ? 'is-due' : ''} ${card.mastered ? 'is-mastered' : ''} ${card.justAdded ? 'just-added' : ''}`;
+    card.justAdded = false;
+
+    item.innerHTML = `
+      <div class="card-item-header">
+        <div style="display: flex; align-items: center; gap: 6px; flex-wrap: wrap;">
+          <span class="card-item-word">${escapeHtml(card.word)}</span>${card.hasImage ? ' <span title="Fotoğraflı">📷</span>' : ''}
+          <button class="btn-icon-action" onclick="speakText('${escapeQuotes(card.word)}')" title="Dinle">
+            <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M11 5L6 9H2v6h4l5 4V5z"/><path d="M15.54 8.46a5 5 0 0 1 0 7.07"/></svg>
+          </button>
+          <span class="badge ${stageInfo.badgeClass}">${stageInfo.badgeText}</span>
+          <span class="badge badge-type">${escapeHtml(card.type || 'Kelime')}</span>
+          <span class="badge badge-level">${escapeHtml(card.level || 'B1')}</span>
+        </div>
+        <div class="card-item-actions">
+          <button class="btn-icon-action" onclick="editCard(${card.id})" title="Düzenle">
+            <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M12 20h9"/><path d="M16.5 3.5a2.121 2.121 0 0 1 3 3L7 19l-4 1 1-4L16.5 3.5z"/></svg>
+          </button>
+          <button class="btn-icon-action delete" onclick="deleteCard(${card.id}, event)" title="Sil">
+            <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><polyline points="3 6 5 6 21 6"/><path d="M19 6v14a2 2 0 0 1-2 2H7a2 2 0 0 1-2-2V6m3 0V4a2 2 0 0 1 2-2h4a2 2 0 0 1 2 2v2"/></svg>
+          </button>
+        </div>
+      </div>
+      <p class="card-item-def">${escapeHtml(card.definition)}</p>
+      ${card.example ? `<p class="card-item-ex">“${escapeHtml(card.example)}”</p>` : ''}
+      <div class="card-item-footer">
+        <div>${(card.tags || []).map(t => `<span class="tag-pill">#${escapeHtml(t)}</span>`).join(' ')}</div>
+        <span>${formatNextReviewStatus(card)}</span>
+      </div>
+    `;
+    listEl.appendChild(item);
+  });
+}
+
+function formatNextReviewStatus(card) {
+  if (card.mastered || card.stage >= SRS_TOTAL) return '⭐ Hafızada (Öğrenildi)';
+  if (isCardDue(card)) return '⚠️ Tekrar Vakti Geldi (Bugün)';
+  if (!card.nextReview) return 'Planlandı';
+
+  const diffMs = card.nextReview - Date.now();
+  const diffDays = Math.ceil(diffMs / 86400000);
+  if (diffDays <= 1) return 'Yarın Tekrar';
+  return `${diffDays} gün sonra tekrar`;
+}
+
+function formatRelativeTime(timestamp) {
+  if (!timestamp) return 'Henüz çalışılmadı';
+  const daysAgo = Math.floor((Date.now() - timestamp) / 86400000);
+  if (daysAgo === 0) return 'Bugün';
+  if (daysAgo === 1) return 'Dün';
+  return `${daysAgo} gün önce`;
+}
+
+// ==========================================
+// İSTATİSTİKLER & BİLDİRİM & TEMA
+// ==========================================
+
+function updateStats() {
+  const total = cards.length;
+  const dueCount = cards.filter(isCardDue).length;
+  const masteredCount = cards.filter(c => c.mastered || (c.stage >= SRS_TOTAL)).length;
+
+  document.getElementById('stat-due-count').textContent = dueCount;
+  document.getElementById('stat-total-count').textContent = total;
+  document.getElementById('stat-mastered-count').textContent = masteredCount;
+  document.getElementById('nav-count').textContent = total;
+}
+
+function showToast(message, type = 'success') {
+  const toast = document.getElementById('app-toast');
+  if (!toast) return;
+  toast.textContent = message;
+  toast.className = `toast toast-${type} show`;
+
+  if (toastTimeout) clearTimeout(toastTimeout);
+  toastTimeout = setTimeout(() => {
+    toast.classList.remove('show');
+  }, 3200);
+}
+
+function toggleTheme() {
+  const cur = document.documentElement.getAttribute('data-theme') || 'dark';
+  const next = cur === 'dark' ? 'light' : 'dark';
+  document.documentElement.setAttribute('data-theme', next);
+  localStorage.setItem(THEME_KEY, next);
+  updateThemeIcon(next);
+}
+
+function loadTheme() {
+  const saved = localStorage.getItem(THEME_KEY) || (window.matchMedia('(prefers-color-scheme: dark)').matches ? 'dark' : 'light');
+  document.documentElement.setAttribute('data-theme', saved);
+  updateThemeIcon(saved);
+}
+
+function updateThemeIcon(theme) {
+  const btn = document.getElementById('theme-toggle-btn');
+  if (!btn) return;
+  if (theme === 'dark') {
+    btn.innerHTML = `<svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="12" cy="12" r="5"/><path d="M12 1v2M12 21v2M4.22 4.22l1.42 1.42M18.36 18.36l1.42 1.42M1 12h2M21 12h2M4.22 19.78l1.42-1.42M18.36 5.64l1.42-1.42"/></svg>`;
+  } else {
+    btn.innerHTML = `<svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M21 12.79A9 9 0 1 1 11.21 3 7 7 0 0 0 21 12.79z"/></svg>`;
+  }
+}
+
+function setupKeyboardShortcuts() {
+  window.addEventListener('keydown', (e) => {
+    if (['INPUT', 'TEXTAREA', 'SELECT'].includes(document.activeElement.tagName)) return;
+    if (document.getElementById('view-study').style.display === 'none') return;
+
+    if (e.code === 'Space') {
+      e.preventDefault();
+      flipStudyCard();
+    } else if (e.key === '1') {
+      gradeCard(false); // Hatırlamadım
+    } else if (e.key === '2') {
+      gradeCard(true); // Öğrendim
+    } else if (e.key.toLowerCase() === 's') {
+      speakCurrentWord();
+    } else if (e.key === 'ArrowRight' || e.key.toLowerCase() === 'n') {
+      skipCard();
+    }
+  });
+}
+
+// ==========================================
+// EXCEL & CSV İÇE / DIŞA AKTARIM
+// ==========================================
+
+// Excel'de yan yana iki hücre (A=das, B=asdas) şeklinde indirecek temiz format
+function exportCSV() {
+  if (cards.length === 0) {
+    showToast("Dışa aktarılacak kelime bulunamadı.", "warning");
+    return;
+  }
+
+  // UTF-8 BOM (\uFEFF) ve Noktalı Virgül (;) sayesinde Excel dosyayı otomatik 2 sütun olarak açar
+  let csv = "\uFEFFWord;Meaning;Example\r\n";
+  cards.forEach(c => {
+    csv += `${escapeCSV(c.word, ';')};${escapeCSV(c.definition, ';')};${escapeCSV(c.example, ';')}\r\n`;
+  });
+
+  const blob = new Blob([csv], { type: 'text/csv;charset=utf-8;' });
+  const a = document.createElement('a');
+  a.href = URL.createObjectURL(blob);
+  a.download = `kelimeler_${getTodayDateStr()}.csv`;
+  a.click();
+  showToast("Excel uyumlu CSV dosyası indirildi! 📊");
+}
+
+// Excel'den kaydedilen dosyaları (noktalı virgül, virgül veya sekme) akıllıca çeker
+function importCSV(e) {
+  const file = e.target.files[0];
+  if (!file) return;
+
+  const reader = new FileReader();
+  reader.onload = function(evt) {
+    try {
+      const content = evt.target.result;
+      const parsedCards = parseExcelCSV(content);
+
+      if (parsedCards.length === 0) {
+        alert("Dosyada geçerli kelime verisi bulunamadı. Lütfen sol hücrede kelime, sağ hücrede anlam olacak şekilde kaydedilmiş bir Excel CSV dosyası seçin.");
+        return;
+      }
+
+      let addedCount = 0;
+      let updatedCount = 0;
+      const changed = [];
+
+      parsedCards.forEach(item => {
+        const existing = cards.find(c => c.word.toLowerCase() === item.word.toLowerCase());
+        if (existing) {
+          existing.definition = item.definition;
+          if (item.example) existing.example = item.example;
+          changed.push(existing);
+          updatedCount++;
+        } else {
+          const nc = {
+            id: Date.now() + Math.floor(Math.random() * 100000) + addedCount,
+            word: item.word,
+            definition: item.definition,
+            type: 'Kelime',
+            level: 'B1',
+            example: item.example || '',
+            example_tr: '',
+            tags: ['Excel'],
+            hint: '',
+            stage: 0,
+            interval: 1,
+            dateAdded: Date.now(),
+            lastReviewed: null,
+            nextReview: calculateNextReviewTime(1), // 1 gün sonra
+            mastered: false,
+            hasImage: false
+          };
+          cards.unshift(nc);
+          changed.push(nc);
+          addedCount++;
+        }
+      });
+
+      persistMany(changed);
+      updateStats();
+      populateTagFilter();
+      startStudySession('due');
+      renderCardList();
+
+      showToast(`🎉 ${addedCount} yeni kelime eklendi${updatedCount > 0 ? `, ${updatedCount} kelime güncellendi` : ''}!`);
+    } catch(err) {
+      console.error(err);
+      alert("CSV yüklenirken bir hata oluştu: " + err.message);
+    }
+  };
+
+  reader.readAsText(file, 'utf-8');
+  e.target.value = '';
+}
+
+// Excel CSV ayrıştırıcı
+// - Ayracı (; , sekme) yalnızca tırnak DIŞINDAKİ karakterleri sayarak bulur
+//   (böylece içinde virgül geçen kalıp cümleler ayracı yanıltmaz)
+// - Hücre içinde satır atlaması (Alt+Enter) olan kayıtları da doğru okur
+function parseExcelCSV(text) {
+  if (!text) return [];
+  if (text.charCodeAt(0) === 0xFEFF) text = text.slice(1);
+
+  const delimiter = detectDelimiter(text);
+  const rows = parseCSVText(text, delimiter);
+
+  const results = [];
+  const headerKeywords = ['kelime', 'word', 'term', 'front', 'soru', 'anlam', 'definition', 'meaning', 'translation', 'cevap', 'açıklama', 'kalıp', 'deyim', 'phrase', 'idiom', 'expression'];
+
+  rows.forEach((cols, i) => {
+    const col0 = (cols[0] || '').replace(/\s+/g, ' ').trim();
+    const col1 = (cols[1] || '').replace(/\s+/g, ' ').trim();
+    const col2 = (cols[2] || '').replace(/\s+/g, ' ').trim();
+    if (!col0) return;
+
+    // Başlık satırı kontrolü (yalnızca ilk satır)
+    if (i === 0 && (headerKeywords.includes(col0.toLowerCase()) || headerKeywords.includes(col1.toLowerCase()))) return;
+
+    results.push({ word: col0, definition: col1 || col0, example: col2 });
+  });
+
+  return results;
+}
+
+// Tırnak dışında kalan ayraçları sayarak en olası ayracı seçer
+function detectDelimiter(text) {
+  const counts = { ';': 0, '\t': 0, ',': 0 };
+  let inQ = false, lines = 0;
+  for (let i = 0; i < text.length && lines < 20; i++) {
+    const ch = text[i];
+    if (ch === '"') {
+      if (inQ && text[i + 1] === '"') { i++; continue; }
+      inQ = !inQ;
+    } else if (!inQ) {
+      if (ch === '\n') lines++;
+      else if (ch in counts) counts[ch]++;
+    }
+  }
+  if (counts['\t'] > 0 && counts['\t'] >= counts[';']) return '\t';
+  if (counts[';'] > 0) return ';';
+  if (counts[','] > 0) return ',';
+  return ';';
+}
+
+// Tüm metni tek seferde ayrıştırır (tırnak içindeki satır sonlarını korur)
+function parseCSVText(text, delimiter) {
+  const rows = [];
+  let row = [], cur = '', inQ = false;
+  for (let i = 0; i < text.length; i++) {
+    const ch = text[i];
+    if (inQ) {
+      if (ch === '"') {
+        if (text[i + 1] === '"') { cur += '"'; i++; }
+        else inQ = false;
+      } else {
+        cur += ch;
+      }
+    } else if (ch === '"') {
+      inQ = true;
+    } else if (ch === delimiter) {
+      row.push(cur.trim()); cur = '';
+    } else if (ch === '\n' || ch === '\r') {
+      if (ch === '\r' && text[i + 1] === '\n') i++;
+      row.push(cur.trim()); cur = '';
+      if (row.some(c => c)) rows.push(row);
+      row = [];
+    } else {
+      cur += ch;
+    }
+  }
+  row.push(cur.trim());
+  if (row.some(c => c)) rows.push(row);
+  return rows;
+}
+
+function escapeCSV(str, delimiter = ';') {
+  if (str === null || str === undefined) return '';
+  const s = String(str).trim();
+  if (s.includes(delimiter) || s.includes('"') || s.includes('\n') || s.includes('\r')) {
+    return `"${s.replace(/"/g, '""')}"`;
+  }
+  return s;
+}
+
+function downloadSampleCSV() {
+  const sample = "\uFEFFWord;Meaning;Example\r\n" +
+    "persevere;to continue trying despite difficulties;She persevered in her studies despite many setbacks.\r\n" +
+    "break the ice;to make people feel more relaxed in a new situation;He told a joke to break the ice.\r\n" +
+    "as soon as;immediately after something happens;Call me as soon as you arrive.\r\n" +
+    "give up;to stop trying to do something;Don't give up, you're almost there!\r\n";
+
+  const blob = new Blob([sample], { type: 'text/csv;charset=utf-8;' });
+  const a = document.createElement('a');
+  a.href = URL.createObjectURL(blob);
+  a.download = `ornek_kelime_sablonu.csv`;
+  a.click();
+}
+
+function exportJSON() {
+  const dataStr = "data:text/json;charset=utf-8," + encodeURIComponent(JSON.stringify(cards, null, 2));
+  const a = document.createElement('a');
+  a.href = dataStr;
+  a.download = `kelime_yedek_${getTodayDateStr()}.json`;
+  a.click();
+}
+
+function importJSON(e) {
+  const file = e.target.files[0];
+  if (!file) return;
+  const reader = new FileReader();
+  reader.onload = function(evt) {
+    try {
+      const imported = JSON.parse(evt.target.result);
+      if (Array.isArray(imported)) {
+        const list = imported.map(normalizeCard);
+        const byId = new Map(cards.map(c => [String(c.id), c]));
+        list.forEach(c => byId.set(String(c.id), c));
+        cards = Array.from(byId.values()).sort((a, b) => (b.dateAdded || 0) - (a.dateAdded || 0));
+        persistMany(list);
+        populateTagFilter();
+        startStudySession();
+        renderCardList();
+        updateStats();
+        showToast(`☁️ ${list.length} kart yüklendi ve buluta kaydediliyor! 🎉`);
+      }
+    } catch(err) {
+      alert("JSON formatı hatalı.");
+    }
+  };
+  reader.readAsText(file);
+  e.target.value = '';
+}
+
+function resetToDefaultCards() {
+  if (confirm("Örnek başlangıç kartları yüklensin mi?")) {
+    const defs = DEFAULT_CARDS.map(c => normalizeCard({ ...c }));
+    const byId = new Map(cards.map(c => [String(c.id), c]));
+    defs.forEach(c => byId.set(String(c.id), c));
+    cards = Array.from(byId.values());
+    persistMany(defs);
+    updateStats();
+    populateTagFilter();
+    startStudySession();
+    renderCardList();
+    showToast("Örnek kart seti yüklendi.");
+  }
+}
+
+function escapeHtml(str) {
+  if (!str) return '';
+  return str.replace(/&/g, "&amp;").replace(/</g, "&lt;").replace(/>/g, "&gt;").replace(/"/g, "&quot;").replace(/'/g, "&#039;");
+}
+
+function escapeQuotes(str) {
+  if (!str) return '';
+  return str.replace(/'/g, "\\'").replace(/"/g, "&quot;");
+}
+
+function getTodayDateStr() {
+  const d = new Date();
+  return `${d.getFullYear()}-${String(d.getMonth()+1).padStart(2,'0')}-${String(d.getDate()).padStart(2,'0')}`;
+}
+
+// ==========================================
+// ANDROID PWA YÜKLEME
+// ==========================================
+
+let deferredInstallPrompt = null;
+window.addEventListener('beforeinstallprompt', (e) => {
+  e.preventDefault();
+  deferredInstallPrompt = e;
+  const banner = document.getElementById('pwa-install-banner');
+  if (banner) banner.style.display = 'flex';
+});
+
+function installPWA() {
+  if (!deferredInstallPrompt) {
+    alert("FlashCard'ı ana ekrana eklemek için tarayıcınızın sağ üstündeki üç noktaya (⋮) tıklayıp 'Uygulamayı Yükle' veya 'Ana Ekrana Ekle' seçeneğini seçebilirsiniz.");
+    return;
+  }
+  deferredInstallPrompt.prompt();
+  deferredInstallPrompt.userChoice.then((choiceResult) => {
+    if (choiceResult.outcome === 'accepted') {
+      showToast("🎉 FlashCard ana ekrana yükleniyor!");
+      const banner = document.getElementById('pwa-install-banner');
+      if (banner) banner.style.display = 'none';
+    }
+    deferredInstallPrompt = null;
+  });
+}
+
+window.addEventListener('appinstalled', () => {
+  showToast("🎉 FlashCard başarıyla yüklendi!");
+  const banner = document.getElementById('pwa-install-banner');
+  if (banner) banner.style.display = 'none';
+});
+
+function registerServiceWorker() {
+  if ('serviceWorker' in navigator && location.protocol === 'https:') {
+    navigator.serviceWorker.register('./sw.js').catch(err => console.warn('SW:', err));
+  }
+}
+
+// ==========================================
+// FOTOĞRAF
+// ==========================================
+
+function showFrontPhoto(e) {
+  if (e) e.stopPropagation();
+  const img = document.getElementById('card-photo-front');
+  if (img.getAttribute('src')) {
+    img.style.display = 'block';
+    document.getElementById('card-photo-btn').style.display = 'none';
+  } else {
+    showToast('Resim yükleniyor...', 'warning');
+  }
+}
+
+async function loadCardImage(id) {
+  if (imageCache[id]) return imageCache[id];
+  if (!window.cloud) return null;
+  try {
+    const url = await window.cloud.getImage(id);
+    if (url) imageCache[id] = url;
+    return url;
+  } catch (e) { console.error(e); return null; }
+}
+
+function setPhotoPreview(url) {
+  const img = document.getElementById('photo-preview');
+  const rm = document.getElementById('photo-remove-btn');
+  const lbl = document.getElementById('photo-btn-label');
+  if (url) {
+    img.src = url;
+    img.style.display = 'block';
+    rm.style.display = 'inline-flex';
+    lbl.textContent = 'Değiştir';
+  } else {
+    img.removeAttribute('src');
+    img.style.display = 'none';
+    rm.style.display = 'none';
+    lbl.textContent = 'Fotoğraf Ekle';
+  }
+}
+
+function removePhoto() {
+  pendingImage = 'remove';
+  setPhotoPreview(null);
+}
+
+async function onPhotoSelected(e) {
+  const file = e.target.files && e.target.files[0];
+  e.target.value = '';
+  if (!file) return;
+  try {
+    const dataUrl = await compressImage(file);
+    pendingImage = dataUrl;
+    setPhotoPreview(dataUrl);
+  } catch (err) {
+    console.error(err);
+    showToast('⚠️ Fotoğraf okunamadı. Başka bir fotoğraf dene.', 'warning');
+  }
+}
+
+// Fotoğrafı en fazla 720px'e küçültüp JPEG'e çevirir (~50-150 KB)
+function compressImage(file) {
+  return new Promise((resolve, reject) => {
+    const url = URL.createObjectURL(file);
+    const img = new Image();
+    img.onload = () => {
+      URL.revokeObjectURL(url);
+      let maxSide = 720, quality = 0.72, out = '';
+      for (let i = 0; i < 4; i++) {
+        const scale = Math.min(1, maxSide / Math.max(img.width, img.height));
+        const w = Math.round(img.width * scale), h = Math.round(img.height * scale);
+        const canvas = document.createElement('canvas');
+        canvas.width = w; canvas.height = h;
+        const ctx = canvas.getContext('2d');
+        ctx.fillStyle = '#ffffff';
+        ctx.fillRect(0, 0, w, h);
+        ctx.drawImage(img, 0, 0, w, h);
+        out = canvas.toDataURL('image/jpeg', quality);
+        if (out.length < 400000) break;
+        maxSide = Math.round(maxSide * 0.75);
+        quality = Math.max(0.5, quality - 0.08);
+      }
+      resolve(out);
+    };
+    img.onerror = () => { URL.revokeObjectURL(url); reject(new Error('image load failed')); };
+    img.src = url;
+  });
+}
+
+// Formda seçilen fotoğrafı karta uygular ve buluta kaydeder
+function applyPendingImage(card) {
+  if (!pendingImage || !window.cloud) return;
+  if (pendingImage === 'remove') {
+    card.hasImage = false;
+    delete imageCache[card.id];
+    window.cloud.deleteImage(card.id).catch(handleCloudWriteError);
+  } else {
+    card.hasImage = true;
+    imageCache[card.id] = pendingImage;
+    window.cloud.setImage(card.id, pendingImage).catch(handleCloudWriteError);
+  }
+  pendingImage = null;
+}
+
+// Kesin başlatma
+if (document.readyState === 'loading') {
+  document.addEventListener('DOMContentLoaded', initApp);
+} else {
+  initApp();
+}
+</script>
+
+<!-- ========================================== -->
+<!-- FIREBASE: Giriş + Bulut Senkronizasyonu     -->
+<!-- ========================================== -->
+<script type="module">
+import { initializeApp } from "https://www.gstatic.com/firebasejs/12.19.0/firebase-app.js";
+import {
+  getAuth, onAuthStateChanged, signInWithEmailAndPassword, createUserWithEmailAndPassword,
+  sendEmailVerification, sendPasswordResetEmail, signOut
+} from "https://www.gstatic.com/firebasejs/12.19.0/firebase-auth.js";
+import {
+  initializeFirestore, persistentLocalCache, persistentMultipleTabManager, memoryLocalCache,
+  collection, doc, setDoc, deleteDoc, getDoc, onSnapshot, writeBatch
+} from "https://www.gstatic.com/firebasejs/12.19.0/firebase-firestore.js";
+
+// Firebase bağlantı bilgileri (herkese açık olması normaldir; güvenliği veritabanı kuralları sağlar)
+const firebaseConfig = {
+  apiKey: "AIzaSyB6omFMBu3yA_oY8NW-I2lXGfzL_GHLwRM",
+  authDomain: "flashcard-467a6.firebaseapp.com",
+  projectId: "flashcard-467a6",
+  storageBucket: "flashcard-467a6.firebasestorage.app",
+  messagingSenderId: "784555660090",
+  appId: "1:784555660090:web:45ef26b50980b26221f603"
+};
+
+const app = initializeApp(firebaseConfig);
+const auth = getAuth(app);
+auth.languageCode = 'tr';
+
+let db;
+try {
+  // Çevrimdışı çalışma: veriler cihazda da saklanır, internet gelince eşitlenir
+  db = initializeFirestore(app, { localCache: persistentLocalCache({ tabManager: persistentMultipleTabManager() }) });
+} catch (e) {
+  console.warn('Kalıcı önbellek açılamadı, bellek önbelleği kullanılıyor.', e);
+  db = initializeFirestore(app, { localCache: memoryLocalCache() });
+}
+
+let uid = null;
+let unsubscribe = null;
+
+const clean = (c) => {
+  const o = { ...c };
+  delete o.justAdded;
+  Object.keys(o).forEach(k => { if (o[k] === undefined) delete o[k]; });
+  return o;
+};
+const cardRef = (id) => doc(db, 'users', uid, 'cards', String(id));
+const imgRef = (id) => doc(db, 'users', uid, 'images', String(id));
+
+function startSync(user) {
+  if (unsubscribe && uid === user.uid) return;
+  if (unsubscribe) unsubscribe();
+  uid = user.uid;
+  unsubscribe = onSnapshot(
+    collection(db, 'users', uid, 'cards'),
+    { includeMetadataChanges: true },
+    (snap) => window.onCloudCards(snap.docs.map(d => d.data()), { pending: snap.metadata.hasPendingWrites, fromCache: snap.metadata.fromCache }),
+    (err) => window.onCloudError(err)
+  );
+  window.onCloudSignedIn(user.email);
+}
+
+function stopSync() {
+  if (unsubscribe) unsubscribe();
+  unsubscribe = null;
+  uid = null;
+}
+
+window.cloud = {
+  get email() { return auth.currentUser ? auth.currentUser.email : ''; },
+  signIn: (e, p) => signInWithEmailAndPassword(auth, e, p),
+  async signUp(e, p) {
+    const cr = await createUserWithEmailAndPassword(auth, e, p);
+    await sendEmailVerification(cr.user);
+    window.onCloudNeedsVerify(cr.user.email);
+    return cr;
+  },
+  async resendVerification() { if (auth.currentUser) await sendEmailVerification(auth.currentUser); },
+  async checkVerified() {
+    const u = auth.currentUser;
+    if (!u) return false;
+    await u.reload();
+    if (auth.currentUser.emailVerified) {
+      await auth.currentUser.getIdToken(true);
+      startSync(auth.currentUser);
+      return true;
+    }
+    return false;
+  },
+  resetPassword: (e) => sendPasswordResetEmail(auth, e),
+  signOut: () => { stopSync(); return signOut(auth); },
+  saveCard: (c) => setDoc(cardRef(c.id), clean(c)),
+  deleteCard: (id) => Promise.all([deleteDoc(cardRef(id)), deleteDoc(imgRef(id))]),
+  async saveMany(list) {
+    for (let i = 0; i < list.length; i += 400) {
+      const b = writeBatch(db);
+      list.slice(i, i + 400).forEach(c => b.set(cardRef(c.id), clean(c)));
+      await b.commit();
+    }
+  },
+  setImage: (id, data) => setDoc(imgRef(id), { data, updated: Date.now() }),
+  deleteImage: (id) => deleteDoc(imgRef(id)),
+  async getImage(id) {
+    const s = await getDoc(imgRef(id));
+    return s.exists() ? s.data().data : null;
+  }
+};
+
+onAuthStateChanged(auth, (user) => {
+  if (!user) {
+    stopSync();
+    window.onCloudSignedOut();
+  } else if (!user.emailVerified) {
+    stopSync();
+    window.onCloudNeedsVerify(user.email);
+  } else {
+    startSync(user);
+  }
+});
+</script>
+</body>
+</html>
