@@ -21,10 +21,10 @@ jobs:
 
       - uses: actions/setup-node@v4
         with:
-          node-version: 20
+          node-version: 22
 
       - name: Firebase kütüphanesini kur
-        run: npm install --no-save --no-audit --no-fund firebase-admin@14
+        run: npm install --no-save --no-audit --no-fund firebase-admin@14 @google-cloud/firestore@9
 
       - name: Bildirimleri gönder
         run: node scripts/send-reminders.mjs
