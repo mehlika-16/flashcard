@@ -1,6 +1,6 @@
 // FlashCard service worker: uygulamanın çevrimdışı açılmasını sağlar.
 // Kart verileri Firebase'in kendi önbelleğinde tutulur; burada sadece uygulama dosyaları var.
-const CACHE = 'flashcard-v1';
+const CACHE = 'flashcard-v2';
 const SHELL = ['./', './index.html', './manifest.json', './icon.svg', './icon-180.png', './icon-192.png', './icon-512.png'];
 
 self.addEventListener('install', (e) => {
@@ -40,4 +40,32 @@ self.addEventListener('fetch', (e) => {
     );
   }
   // Diğer istekler (Firebase veritabanı, giriş) doğrudan internete gider
+});
+
+// ---------- Bildirimler (günlük hatırlatma) ----------
+self.addEventListener('push', (e) => {
+  let payload = {};
+  try { payload = e.data ? e.data.json() : {}; } catch (err) { payload = { data: { body: e.data ? e.data.text() : '' } }; }
+  const d = payload.data || {};
+  const n = payload.notification || {};
+  const title = d.title || n.title || 'FlashCard';
+  const body = d.body || n.body || 'Tekrar vakti geldi!';
+  e.waitUntil(self.registration.showNotification(title, {
+    body,
+    icon: 'icon-192.png',
+    badge: 'icon-192.png',
+    tag: 'flashcard-daily',
+    data: { url: d.url || './' }
+  }));
+});
+
+self.addEventListener('notificationclick', (e) => {
+  e.notification.close();
+  const url = (e.notification.data && e.notification.data.url) || './';
+  e.waitUntil(
+    self.clients.matchAll({ type: 'window', includeUncontrolled: true }).then((list) => {
+      for (const c of list) { if ('focus' in c) return c.focus(); }
+      return self.clients.openWindow(url);
+    })
+  );
 });

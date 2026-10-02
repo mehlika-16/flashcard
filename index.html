@@ -1396,6 +1396,18 @@
     <div class="card-list-items" id="card-list-items"></div>
   </section>
 
+  <!-- Günlük Hatırlatma -->
+  <section class="panel" id="reminder-panel">
+    <h3 style="font-size: 1rem; font-weight: 700; margin-bottom: 6px;">🔔 Günlük Hatırlatma</h3>
+    <p id="reminder-status" style="font-size: 0.85rem; color: var(--text-muted); margin-bottom: 10px;">Tekrar edilecek kelime olduğunda seçtiğin saatte telefonuna bildirim gelir.</p>
+    <div style="display: flex; gap: 8px; align-items: center; flex-wrap: wrap;">
+      <label for="reminder-hour" style="font-size: 0.85rem; font-weight: 600; color: var(--text-muted);">Saat:</label>
+      <select id="reminder-hour" onchange="onReminderHourChange()"></select>
+      <button class="btn-primary" id="reminder-enable-btn" onclick="enableReminders()">Bu cihazda aç</button>
+      <button class="btn-outline" id="reminder-disable-btn" onclick="disableReminders()" style="display:none;">Kapat</button>
+    </div>
+  </section>
+
   <!-- Veri Yönetimi & Excel Entegrasyonu -->
   <section class="panel">
     <h3 style="font-size: 1rem; font-weight: 700; margin-bottom: 10px;">Veri Yönetimi & Excel Entegrasyonu</h3>
@@ -1628,6 +1640,7 @@ function initApp() {
   loadTheme();
   setupKeyboardShortcuts();
   registerServiceWorker();
+  fillReminderHours();
   window.addEventListener('online', () => setSyncState('ok'));
   window.addEventListener('offline', () => setSyncState());
   setSyncState();
@@ -1712,6 +1725,7 @@ window.onCloudCards = function(list, meta) {
 
 window.onCloudSignedIn = function(email) {
   document.getElementById('auth-overlay').style.display = 'none';
+  refreshReminderUI(true);
   try { localStorage.setItem('flashcards_last_email', email || ''); } catch (e) {}
 };
 
@@ -2836,6 +2850,104 @@ function registerServiceWorker() {
 }
 
 // ==========================================
+// GÜNLÜK HATIRLATMA (Bildirim)
+// ==========================================
+
+const REMINDER_KEY = 'flashcards_reminder_device';
+const DEFAULT_REMINDER_HOUR = 13;
+
+function fillReminderHours() {
+  const sel = document.getElementById('reminder-hour');
+  if (sel.options.length) return;
+  for (let h = 0; h < 24; h++) {
+    const o = document.createElement('option');
+    o.value = h;
+    o.textContent = String(h).padStart(2, '0') + ':00';
+    sel.appendChild(o);
+  }
+  sel.value = DEFAULT_REMINDER_HOUR;
+}
+
+function reminderDeviceId() {
+  try { return localStorage.getItem(REMINDER_KEY); } catch (e) { return null; }
+}
+
+function setReminderStatus(text) {
+  document.getElementById('reminder-status').textContent = text;
+}
+
+// Bu cihazda hatırlatma açık mı? Açıksa saat dilimini/anahtarı tazeler.
+async function refreshReminderUI(touch) {
+  fillReminderHours();
+  const id = reminderDeviceId();
+  const on = !!id && 'Notification' in window && Notification.permission === 'granted';
+  document.getElementById('reminder-enable-btn').style.display = on ? 'none' : 'inline-flex';
+  document.getElementById('reminder-disable-btn').style.display = on ? 'inline-flex' : 'none';
+  if (!on) {
+    if (!('Notification' in window)) {
+      setReminderStatus(/iPhone|iPad/.test(navigator.userAgent)
+        ? "iPhone'da bildirim için uygulamayı Safari'den 'Ana Ekrana Ekle' ile kurup ana ekrandaki ikondan açmalısın."
+        : 'Bu tarayıcı bildirimleri desteklemiyor.');
+    } else {
+      setReminderStatus('Tekrar edilecek kelime olduğunda seçtiğin saatte bu cihaza bildirim gelir.');
+    }
+    return;
+  }
+  if (!window.cloud) return;
+  try {
+    const dev = await window.cloud.getReminder(id);
+    if (!dev) { localStorage.removeItem(REMINDER_KEY); return refreshReminderUI(false); }
+    document.getElementById('reminder-hour').value = dev.hour;
+    setReminderStatus(`✅ Açık: her gün ${String(dev.hour).padStart(2, '0')}:00'da (${dev.tz}) tekrar edilecek kelime varsa bildirim gelir.`);
+    if (touch) window.cloud.refreshReminder(id).catch(e => console.warn(e));
+  } catch (e) { console.error(e); }
+}
+
+async function enableReminders() {
+  if (!('Notification' in window)) { refreshReminderUI(false); showToast('Bu cihazda bildirim desteklenmiyor.', 'warning'); return; }
+  // İzin isteği doğrudan dokunuşla yapılmalı (iPhone için)
+  const perm = await Notification.requestPermission();
+  if (perm !== 'granted') {
+    setReminderStatus('Bildirim izni verilmedi. iPhone: Ayarlar → Bildirimler → FlashCard bölümünden açabilirsin.');
+    return;
+  }
+  const btn = document.getElementById('reminder-enable-btn');
+  btn.disabled = true;
+  setReminderStatus('Ayarlanıyor...');
+  try {
+    const hour = Number(document.getElementById('reminder-hour').value);
+    const id = await window.cloud.enableReminder(hour);
+    localStorage.setItem(REMINDER_KEY, id);
+    showToast('🔔 Günlük hatırlatma açıldı!');
+  } catch (e) {
+    console.error(e);
+    setReminderStatus('⚠️ Açılamadı: ' + (e && e.code ? e.code : e));
+  } finally {
+    btn.disabled = false;
+    refreshReminderUI(false);
+  }
+}
+
+async function disableReminders() {
+  const id = reminderDeviceId();
+  try { if (id) await window.cloud.disableReminder(id); } catch (e) { console.error(e); }
+  localStorage.removeItem(REMINDER_KEY);
+  showToast('Hatırlatma bu cihazda kapatıldı.', 'warning');
+  refreshReminderUI(false);
+}
+
+async function onReminderHourChange() {
+  const id = reminderDeviceId();
+  if (!id || !window.cloud) return;
+  const hour = Number(document.getElementById('reminder-hour').value);
+  try {
+    await window.cloud.setReminderHour(id, hour);
+    showToast(`⏰ Hatırlatma saati ${String(hour).padStart(2, '0')}:00 oldu.`);
+    refreshReminderUI(false);
+  } catch (e) { console.error(e); showToast('⚠️ Saat kaydedilemedi.', 'warning'); }
+}
+
+// ==========================================
 // FOTOĞRAF
 // ==========================================
 
@@ -2959,8 +3071,12 @@ import {
 } from "https://www.gstatic.com/firebasejs/12.19.0/firebase-auth.js";
 import {
   initializeFirestore, persistentLocalCache, persistentMultipleTabManager, memoryLocalCache,
-  collection, doc, setDoc, deleteDoc, getDoc, onSnapshot, writeBatch
+  collection, doc, setDoc, deleteDoc, getDoc, onSnapshot, writeBatch, updateDoc
 } from "https://www.gstatic.com/firebasejs/12.19.0/firebase-firestore.js";
+import { getMessaging, getToken, deleteToken, isSupported } from "https://www.gstatic.com/firebasejs/12.19.0/firebase-messaging.js";
+
+// Web Push genel anahtarı (gizli değildir)
+const VAPID_KEY = "BJROkCHfvaYAYYQfjVRDvdqoQKwJ_Ysx8mqenU8cVVE3UfyiHTzw8O4g-9M9ryWiAJUdzFGtOb6l2m0O3FBI3E4";
 
 // Firebase bağlantı bilgileri (herkese açık olması normaldir; güvenliği veritabanı kuralları sağlar)
 const firebaseConfig = {
@@ -2996,6 +3112,20 @@ const clean = (c) => {
 };
 const cardRef = (id) => doc(db, 'users', uid, 'cards', String(id));
 const imgRef = (id) => doc(db, 'users', uid, 'images', String(id));
+const devRef = (id) => doc(db, 'users', uid, 'devices', String(id));
+
+async function pushToken() {
+  if (!(await isSupported())) throw new Error('Bu tarayıcı bildirimleri desteklemiyor');
+  const reg = await navigator.serviceWorker.ready;
+  return getToken(getMessaging(app), { vapidKey: VAPID_KEY, serviceWorkerRegistration: reg });
+}
+
+async function tokenId(token) {
+  const buf = await crypto.subtle.digest('SHA-256', new TextEncoder().encode(token));
+  return Array.from(new Uint8Array(buf)).slice(0, 16).map(b => b.toString(16).padStart(2, '0')).join('');
+}
+
+const localTz = () => Intl.DateTimeFormat().resolvedOptions().timeZone || 'America/Vancouver';
 
 function startSync(user) {
   if (unsubscribe && uid === user.uid) return;
@@ -3047,6 +3177,34 @@ window.cloud = {
       list.slice(i, i + 400).forEach(c => b.set(cardRef(c.id), clean(c)));
       await b.commit();
     }
+  },
+  async enableReminder(hour) {
+    const token = await pushToken();
+    const id = await tokenId(token);
+    await setDoc(devRef(id), { token, hour, tz: localTz(), ua: navigator.userAgent.slice(0, 150), updated: Date.now() }, { merge: true });
+    return id;
+  },
+  async refreshReminder(id) {
+    const token = await pushToken();
+    const newId = await tokenId(token);
+    if (newId !== id) {
+      const old = await getDoc(devRef(id));
+      const hour = old.exists() ? old.data().hour : 13;
+      await setDoc(devRef(newId), { token, hour, tz: localTz(), ua: navigator.userAgent.slice(0, 150), updated: Date.now() }, { merge: true });
+      await deleteDoc(devRef(id));
+      localStorage.setItem('flashcards_reminder_device', newId);
+    } else {
+      await updateDoc(devRef(id), { token, tz: localTz(), updated: Date.now() });
+    }
+  },
+  async getReminder(id) {
+    const s = await getDoc(devRef(id));
+    return s.exists() ? s.data() : null;
+  },
+  setReminderHour: (id, hour) => updateDoc(devRef(id), { hour, updated: Date.now() }),
+  async disableReminder(id) {
+    try { await deleteToken(getMessaging(app)); } catch (e) { console.warn(e); }
+    await deleteDoc(devRef(id));
   },
   setImage: (id, data) => setDoc(imgRef(id), { data, updated: Date.now() }),
   deleteImage: (id) => deleteDoc(imgRef(id)),
