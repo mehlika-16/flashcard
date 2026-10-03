@@ -2,7 +2,7 @@ name: Günlük hatırlatma
 
 on:
   schedule:
-    - cron: '3 * * * *'   # her saat başı (birkaç dakika gecikebilir)
+    - cron: '*/15 * * * *'   # 15 dakikada bir kontrol (GitHub bazen geciktirir/atlar)
   workflow_dispatch:
     inputs:
       force:
