@@ -48,7 +48,10 @@ for (const docSnap of devices.docs) {
   const today = localDate(tz);
 
   if (!FORCE) {
-    if (localHour(tz) !== hour) continue;
+    // GitHub zamanlanmış görevleri bazen geciktirir veya atlar. Bu yüzden
+    // seçilen saatte ya da sonraki 6 saat içinde (bugün henüz gönderilmediyse) gönder.
+    const h = localHour(tz);
+    if (h < hour || h >= hour + 6) continue;
     if (dev.lastSentDate === today) continue;
   }
 
