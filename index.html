@@ -2213,9 +2213,7 @@ function renderStudyCard() {
       const cur = studyDeck[currentStudyIndex];
       if (!url || !cur || cur.id !== cid) return;
       photoFront.src = url;
-      photoFront.style.display = 'block';
-      photoBack.src = url;
-      photoBack.style.display = 'block';
+      photoFront.style.display = 'block'; // resim sadece ön yüzde
     });
   }
 
