@@ -1,6 +1,6 @@
 // FlashCard service worker: uygulamanın çevrimdışı açılmasını sağlar.
 // Kart verileri Firebase'in kendi önbelleğinde tutulur; burada sadece uygulama dosyaları var.
-const CACHE = 'flashcard-v2';
+const CACHE = 'flashcard-v3';
 const SHELL = ['./', './index.html', './manifest.json', './icon.svg', './icon-180.png', './icon-192.png', './icon-512.png'];
 
 self.addEventListener('install', (e) => {
@@ -23,7 +23,8 @@ self.addEventListener('fetch', (e) => {
   // Uygulama sayfası: önce internetten en güncelini al, yoksa önbellekten aç
   if (req.mode === 'navigate' || (url.origin === location.origin && url.pathname.endsWith('.html'))) {
     e.respondWith(
-      fetch(req)
+      // Tarayıcı önbelleğini atla: her açılışta en güncel sürümü al
+      fetch(req.url, { cache: 'no-cache' })
         .then((res) => { const copy = res.clone(); caches.open(CACHE).then((c) => c.put('./index.html', copy)); return res; })
         .catch(() => caches.match('./index.html'))
     );
